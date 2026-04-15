@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>{% block title %}Dashboard{% endblock %} | EVSU Reserve</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+<style>
+/* ---------- SIDEBAR ---------- */
+aside a.active {
+    background-color: #e0f2fe;
+    color: #0c4a6e;
+    font-weight: 500;
+}
+
+/* ---------- MOBILE NAV ---------- */
+.mobile-nav {
+    position: fixed;
+    bottom: .5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 95%;
+    backdrop-filter: blur(12px);
+    background: rgba(255, 255, 255, 0.85);
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+    border-radius: 1rem;
+    display: flex;
+    justify-content: space-around;
+    padding: 0.5rem 0.25rem;
+    z-index: 50;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.mobile-nav a,
+.mobile-nav button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 0.75rem;
+    color: #6b7280;
+    transition: all 0.2s ease;
+}
+
+.mobile-nav a.active {
+    color: #0c4a6e;
+}
+
+.mobile-nav a:hover,
+.mobile-nav button:hover {
+    transform: translateY(-2px);
+}
+
+/* FIXED transform conflict */
+.mobile-nav.hidden {
+    transform: translateX(-50%) translateY(100%);
+    opacity: 0;
+}
+
+/* ---------- MODAL ---------- */
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.95) translateY(10px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.animate-fadeIn {
+    animation: fadeIn 0.25s ease;
+}
+
+/* ---------- BODY ---------- */
+body {
+    background-color: #f9fafb;
+}
+</style>
+</head>
+
+<body class="font-sans text-gray-800 flex">
+
+<!-- SIDEBAR -->
+<aside class="hidden md:flex flex-col w-64 h-screen bg-white shadow-lg sticky top-0">
+    <div class="p-6 flex flex-col h-full">
+
+        <!-- Branding -->
+        <div class="mb-6 flex items-center gap-2">
+            <span class="material-icons text-3xl text-blue-600">event</span>
+            <h1 class="text-2xl font-bold">EVSU Reserve</h1>
+        </div>
+
+        <!-- User -->
+        <div class="mb-6">
+            <p class="font-semibold">Welcome, {{ request.user.username }}</p>
+            <p class="text-sm text-gray-500">{{ request.user.role|capfirst }}</p>
+        </div>
+
+        <!-- Nav -->
+        <nav class="flex-1 space-y-2">
+            <a href="{% url 'user_dashboard' %}" class="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-gray-100 {% if request.resolver_match.url_name == 'user_dashboard' %}active{% endif %}">
+                <span class="material-icons">dashboard</span> Dashboard
+            </a>
+
+            <a href="{% url 'my_reservations' %}" class="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-gray-100 {% if request.resolver_match.url_name == 'my_reservations' %}active{% endif %}">
+                <span class="material-icons">event_available</span> My Reservations
+            </a>
+
+            <a href="{% url 'facilities' %}" class="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-gray-100 {% if request.resolver_match.url_name == 'facilities' %}active{% endif %}">
+                <span class="material-icons">meeting_room</span> Facilities
+            </a>
+
+            <a href="" class="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-gray-100 {% if request.resolver_match.url_name == 'account_settings' %}active{% endif %}">
+                <span class="material-icons">settings</span> Settings
+            </a>
+        </nav>
+
+        <!-- Logout -->
+        <button onclick="openLogoutModal()" class="mt-auto flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-red-50 text-red-600">
+            <span class="material-icons">logout</span> Logout
+        </button>
+
+    </div>
+</aside>
+
+<!-- MAIN -->
+<main class="flex-1 min-h-screen p-6 md:p-10">
+    {% block content %}{% endblock %}
+</main>
+
+<!-- MOBILE NAV -->
+<div id="mobileNav" class="md:hidden mobile-nav">
+    <a href="{% url 'user_dashboard' %}" class="{% if request.resolver_match.url_name == 'user_dashboard' %}active{% endif %}">
+        <span class="material-icons text-lg">dashboard</span> Dashboard
+    </a>
+
+    <a href="{% url 'my_reservations' %}">
+        <span class="material-icons text-lg">event_available</span> Reservations
+    </a>
+
+    <a href="{% url 'facilities' %}">
+        <span class="material-icons text-lg">meeting_room</span> Facilities
+    </a>
+
+    <a href="">
+        <span class="material-icons text-lg">settings</span> Settings
+    </a>
+
+    <!-- Logout -->
+    <button onclick="openLogoutModal()" class="text-red-500">
+        <span class="material-icons text-lg">logout</span> Logout
+    </button>
+</div>
+
+<!-- LOGOUT MODAL -->
+<div id="logoutModal" class="fixed inset-0 z-50 hidden items-center justify-center">
+
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
+
+    <div class="relative bg-white w-[90%] max-w-sm rounded-2xl shadow-xl p-6 text-center animate-fadeIn">
+
+        <span class="material-icons text-red-500 text-4xl mb-2">logout</span>
+
+        <h2 class="text-lg font-semibold">Confirm Logout</h2>
+        <p class="text-sm text-gray-500 mt-1">Are you sure you want to logout?</p>
+
+        <div class="mt-5 flex gap-3">
+            <button onclick="closeLogoutModal()" class="flex-1 py-2 rounded-lg bg-gray-100 hover:bg-gray-200">
+                Cancel
+            </button>
+
+            <form action="{% url 'logout' %}" method="POST" class="flex-1">
+                {% csrf_token %}
+                <button type="submit" class="w-full py-2 rounded-lg bg-red-500 hover:bg-red-600 text-white">
+                    Logout
+                </button>
+            </form>
+        </div>
+
+    </div>
+</div>
+
+<!-- SCRIPTS -->
+<script>
+/* Scroll Hide/Show */
+let lastScrollTop = 0;
+const mobileNav = document.getElementById('mobileNav');
+
+window.addEventListener('scroll', () => {
+    const st = window.pageYOffset || document.documentElement.scrollTop;
+
+    if (st > lastScrollTop && st > 50) {
+        mobileNav.classList.add('hidden');
+    } else {
+        mobileNav.classList.remove('hidden');
+    }
+
+    lastScrollTop = st <= 0 ? 0 : st;
+});
+
+/* Modal Controls */
+function openLogoutModal() {
+    const modal = document.getElementById('logoutModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+function closeLogoutModal() {
+    const modal = document.getElementById('logoutModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,143 @@
+{% extends 'user/base.html' %}
+{% load widget_tweaks %}
+{% block title %}My Reservations{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto py-6 space-y-8">
+
+    <!-- PAGE HEADER -->
+    <div class="flex flex-col md:flex-row md:justify-between md:items-center">
+        <h2 class="text-3xl font-bold text-gray-900">My Reservations</h2>
+        <p class="mt-2 md:mt-0 text-gray-600">View your upcoming and past reservations or book a new facility.</p>
+    </div>
+
+    <!-- DISPLAY MESSAGES -->
+    {% if messages %}
+    <div class="space-y-2">
+        {% for message in messages %}
+            <div class="p-4 rounded shadow-sm text-white {% if message.tags == 'error' %}bg-red-600{% else %}bg-green-600{% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- NEW RESERVATION FORM -->
+    <div class="bg-white rounded-2xl shadow p-6 md:p-8">
+        <h3 class="text-xl font-semibold text-gray-900 mb-4">Book a New Reservation</h3>
+        <form method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {% csrf_token %}
+
+            <!-- ---------- NON-FIELD ERRORS ---------- -->
+            {% if form.non_field_errors %}
+            <div class="md:col-span-2 bg-red-50 border border-red-200 text-red-700 p-3 rounded mb-4">
+                {% for error in form.non_field_errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Facility -->
+            <div class="flex flex-col">
+                {{ form.facility.label_tag }}
+                {{ form.facility|add_class:"border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none" }}
+                {% if form.facility.errors %}
+                    <p class="text-red-600 text-sm mt-1">{{ form.facility.errors|striptags }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Date -->
+            <div class="flex flex-col">
+                {{ form.date.label_tag }}
+                {{ form.date|add_class:"border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none" }}
+                {% if form.date.errors %}
+                    <p class="text-red-600 text-sm mt-1">{{ form.date.errors|striptags }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Start Time -->
+            <div class="flex flex-col">
+                {{ form.start_time.label_tag }}
+                {{ form.start_time|add_class:"border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none" }}
+                {% if form.start_time.errors %}
+                    <p class="text-red-600 text-sm mt-1">{{ form.start_time.errors|striptags }}</p>
+                {% endif %}
+            </div>
+
+            <!-- End Time -->
+            <div class="flex flex-col">
+                {{ form.end_time.label_tag }}
+                {{ form.end_time|add_class:"border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none" }}
+                {% if form.end_time.errors %}
+                    <p class="text-red-600 text-sm mt-1">{{ form.end_time.errors|striptags }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Notes -->
+            <div class="flex flex-col md:col-span-2">
+                {{ form.notes.label_tag }}
+                {{ form.notes|add_class:"border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none" }}
+                {% if form.notes.errors %}
+                    <p class="text-red-600 text-sm mt-1">{{ form.notes.errors|striptags }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Equipment -->
+            <div class="flex flex-col md:col-span-2">
+                <label class="font-medium text-gray-700 mb-2">Select Equipment</label>
+                {% if form.equipment.errors %}
+                    <p class="text-red-600 text-sm mb-1">{{ form.equipment.errors|striptags }}</p>
+                {% endif %}
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                    {% for checkbox in form.equipment %}
+                        <label class="flex items-center gap-2 border rounded-lg px-3 py-2 hover:bg-gray-100 transition cursor-pointer">
+                            {{ checkbox.tag }}
+                            <span class="text-gray-700">{{ checkbox.choice_label }}</span>
+                        </label>
+                    {% empty %}
+                        <p class="text-gray-500 text-sm">No equipment available.</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Submit -->
+            <div class="md:col-span-2 flex justify-end">
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-xl transition">
+                    Submit Reservation
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- USER RESERVATIONS CARDS -->
+    {% if reservations %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for res in reservations %}
+        <div class="bg-white shadow rounded-2xl p-6 flex flex-col justify-between hover:shadow-lg transition">
+            <div>
+                <h4 class="text-lg font-semibold text-gray-900">{{ res.facility.name }}</h4>
+                <p class="text-gray-500 text-sm">{{ res.date|date:"M d, Y" }}</p>
+                <p class="text-gray-500 text-sm">{{ res.time_slot }}</p>
+                <p class="text-gray-500 text-sm">{{ res.notes|default:"No notes" }}</p>
+            </div>
+            <span class="mt-4 inline-block px-3 py-1 text-sm font-medium rounded-full
+                {% if res.status == 'pending' %}bg-yellow-100 text-yellow-800
+                {% elif res.status == 'approved' %}bg-green-100 text-green-800
+                {% else %}bg-red-100 text-red-800{% endif %}">
+                {{ res.status|capfirst }}
+            </span>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-20">
+        <svg class="mx-auto h-24 w-24 text-gray-300 mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+        <p class="text-gray-500 text-lg">You have no reservations yet. Use the form above to book a facility.</p>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin{% endblock %} | EVSU Reserve</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <style>
+        body {
+            background-color: #f9fafb;
+        }
+
+        /* ---------- SIDEBAR ---------- */
+        aside {
+            transition: all 0.3s ease;
+        }
+
+        aside a.active {
+            background-color: #e0f2fe;
+            color: #0c4a6e;
+            font-weight: 500;
+        }
+
+        /* ---------- MOBILE NAV (UPGRADED) ---------- */
+        .mobile-nav {
+            position: fixed;
+            bottom: 0.8rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(0);
+            width: 92%;
+
+            backdrop-filter: blur(16px);
+            background: rgba(255, 255, 255, 0.75);
+
+            border-radius: 1.5rem;
+
+            box-shadow:
+                0 10px 30px rgba(0, 0, 0, 0.12),
+                inset 0 1px 0 rgba(255, 255, 255, 0.4);
+
+            display: flex;
+            justify-content: space-around;
+            padding: 0.6rem 0.2rem;
+
+            z-index: 50;
+
+            opacity: 1;
+            pointer-events: auto;
+
+            transition:
+                transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.25s ease;
+        }
+
+        .mobile-nav.hide {
+            transform: translateX(-50%) translateY(130%);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .mobile-nav a {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 0.7rem;
+            color: #6b7280;
+            transition: all 0.25s ease;
+        }
+
+        .mobile-nav a span.material-icons {
+            transition: transform 0.25s ease;
+        }
+
+        .mobile-nav a:hover span.material-icons {
+            transform: translateY(-3px) scale(1.05);
+        }
+
+        .mobile-nav a.active {
+            color: #0c4a6e;
+        }
+
+        .mobile-nav a.active span.material-icons {
+            transform: translateY(-4px) scale(1.1);
+        }
+
+        .mobile-nav a::after {
+            content: "";
+            position: absolute;
+            bottom: -6px;
+            width: 5px;
+            height: 5px;
+            background: transparent;
+            border-radius: 50%;
+            transition: all 0.25s ease;
+        }
+
+        .mobile-nav a.active::after {
+            background: #0c4a6e;
+            width: 6px;
+            height: 6px;
+            box-shadow: 0 0 8px rgba(12, 74, 110, 0.6);
+        }
+
+        @keyframes floatUp {
+            0% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-3px);
+            }
+
+            100% {
+                transform: translateY(0);
+            }
+        }
+
+        .mobile-nav a.active span.material-icons {
+            animation: floatUp 1.5s ease-in-out infinite;
+        }
+
+        main {
+            transition: margin-left 0.3s ease;
+        }
+    </style>
+</head>
+
+<body class="font-sans text-gray-800 flex">
+
+    <div id="toast" class="fixed bottom-5 right-5 hidden px-4 py-2 rounded-lg text-white shadow-lg z-50"></div>
+
+    <script>
+        function showToast(message, type = "success") {
+            const toast = document.getElementById('toast');
+            toast.innerText = message;
+
+            toast.className = `fixed bottom-5 right-5 px-4 py-2 rounded-lg text-white shadow-lg z-50 ${type === "success" ? "bg-green-600" : "bg-red-600"
+                }`;
+
+            toast.classList.remove('hidden');
+
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 2500);
+        }
+
+        function setLoading(btn, isLoading) {
+            if (isLoading) {
+                btn.disabled = true;
+                btn.dataset.original = btn.innerHTML;
+                btn.innerHTML = "⏳";
+            } else {
+                btn.disabled = false;
+                btn.innerHTML = btn.dataset.original;
+            }
+        }
+    </script>
+
+    <!-- ---------- SIDEBAR ---------- -->
+    <aside class="hidden md:flex flex-col w-64 h-screen bg-white shadow-lg sticky top-0">
+        <div class="p-6 flex flex-col h-full">
+
+            <div class="mb-6 flex items-center gap-2">
+                <span class="material-icons text-3xl text-blue-600">admin_panel_settings</span>
+                <h1 class="text-2xl font-bold text-gray-900">Admin Panel</h1>
+            </div>
+
+            <div class="mb-6">
+                <p class="font-semibold text-gray-700">Hello, {{ request.user.username }}</p>
+                <p class="text-sm text-gray-500">Administrator</p>
+            </div>
+
+            <nav class="flex-1 space-y-2">
+                <a href="{% url 'admin_dashboard' %}"
+                    class="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-gray-100 {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
+                    <span class="material-icons">dashboard</span>
+                    Dashboard
+                </a>
+
+                <a href="{% url 'admin_reservations' %}"
+                    class="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-gray-100 {% if request.resolver_match.url_name == 'admin_reservations' %}active{% endif %}">
+                    <span class="material-icons">event</span>
+                    Reservations
+                </a>
+
+                <a href="{% url 'admin_users' %}"
+                    class="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-gray-100 {% if request.resolver_match.url_name == 'admin_users' %}active{% endif %}">
+                    <span class="material-icons">people</span>
+                    Users
+                </a>
+                <a href="{% url 'admin_facilities' %}"
+                    class="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-gray-100 {% if request.resolver_match.url_name == 'admin_facilities' %}active{% endif %}">
+                    <span class="material-icons">meeting_room</span>
+                    Facilities
+                </a>
+
+                <a href="{% url 'admin_settings' %}"
+                    class="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-gray-100 {% if request.resolver_match.url_name == 'admin_settings' %}active{% endif %}">
+                    <span class="material-icons">settings</span>
+                    Settings
+                </a>
+            </nav>
+
+            <div class="mt-auto">
+                <a href="{% url 'logout' %}"
+                    class="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-red-50 text-red-600 hover:text-red-700 transition">
+                    <span class="material-icons">logout</span>
+                    Logout
+                </a>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ---------- MAIN WRAPPER ---------- -->
+    <div class="flex-1 flex flex-col min-h-screen">
+
+        <header
+            class="sticky top-0 z-40 bg-white/70 backdrop-blur border-b px-4 md:px-10 py-3 flex justify-between items-center">
+
+            <h2 class="text-lg font-semibold text-gray-800 opacity-0">EVSU Reserve</h2>
+
+            <!-- RIGHT ACTIONS -->
+            <div class="flex items-center gap-3 relative">
+
+                <!-- NOTIFICATION BELL -->
+                <button type="button" id="notifBtn"
+                    class="relative w-9 h-9 rounded-full bg-white border border-gray-200 text-gray-600 flex items-center justify-center hover:bg-gray-50 hover:shadow-sm transition"
+                    title="Notifications">
+
+                    <span class="material-icons text-[20px]">
+                        notifications
+                    </span>
+
+                    {% if unread_notifications_count > 0 %}
+                    <span
+                        class="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 text-[10px] bg-red-500 text-white rounded-full flex items-center justify-center">
+                        {{ unread_notifications_count }}
+                    </span>
+                    {% endif %}
+                </button>
+
+                <!-- NOTIFICATIONS DROPDOWN DESKTOP-->
+                <div id="notifDropdown"
+                    class="hidden absolute right-0 top-12 w-80 max-h-96 overflow-y-auto bg-white border border-gray-200 rounded-2xl shadow-xl z-50">
+
+                    <div class="p-3 border-b font-semibold text-gray-700">
+                        Notifications
+                    </div>
+
+                    <div id="notifList">
+                        <div class="flex flex-col items-center justify-center py-6 text-gray-400">
+                            <span class="material-icons text-4xl mb-2">notifications_none</span>
+                            <p class="text-sm">Loading...</p>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- NOTIFICATION MOBILE -->
+                <div id="notifMobile" class="fixed inset-0 z-50 hidden flex flex-col bg-white h-screen w-screen">
+
+                    <!-- HEADER -->
+                    <div class="flex items-center justify-between p-4 border-b sticky top-0 bg-white z-10">
+
+                        <h2 class="text-lg font-semibold">Notifications</h2>
+
+                        <button id="closeNotifMobile" class="p-2 rounded-full hover:bg-gray-100">
+                            <span class="material-icons text-2xl">close</span>
+                        </button>
+
+                    </div>
+
+                    <!--MOBILE NOTIFICATION LIST -->
+                    <div id="notifMobileList" class="flex-1 overflow-y-auto p-3 space-y-2 scroll-smooth">
+
+                        <div class="flex flex-col items-center justify-center py-6 text-gray-400">
+                            <span class="material-icons text-4xl mb-2">notifications_none</span>
+                            <p class="text-sm">Loading...</p>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- PROFILE -->
+                <div class="relative">
+                    <button id="profileBtn">
+                        <div
+                            class="w-9 h-9 rounded-full bg-blue-600 text-white flex items-center justify-center font-semibold">
+                            {{ request.user.username|slice:":1"|upper }}
+                        </div>
+                    </button>
+
+                    <!-- DROPDOWN -->
+                    <div id="dropdownMenu"
+                        class="hidden absolute right-0 mt-2 w-56 bg-white shadow-lg rounded-xl p-3 ring-1 ring-black ring-opacity-5">
+
+                        <p class="text-sm font-medium text-gray-800">{{ request.user.username }}</p>
+                        <p class="text-xs text-gray-500 mb-3">{{ request.user.email }}</p>
+
+                        <button onclick="openModal()"
+                            class="w-full text-left text-red-600 hover:bg-red-50 px-3 py-2 rounded-lg transition">
+                            Logout
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </header>
+
+        <!-- ---------- MAIN ---------- -->
+        <main class="flex-1 min-h-screen p-3 md:p-10 mt-2">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <!-- ---------- MOBILE NAV ---------- -->
+    <div id="mobileNav" class="md:hidden mobile-nav">
+        <a href="{% url 'admin_dashboard' %}"
+            class="{% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
+            <span class="material-icons text-lg">dashboard</span>
+            <span>Dashboard</span>
+        </a>
+        <a href="{% url 'admin_reservations' %}"
+            class="{% if request.resolver_match.url_name == 'admin_reservations' %}active{% endif %}">
+            <span class="material-icons text-lg">event</span>
+            <span>Reserve</span>
+        </a>
+        <a href="{% url 'admin_users' %}"
+            class="{% if request.resolver_match.url_name == 'admin_users' %}active{% endif %}">
+            <span class="material-icons text-lg">people</span>
+            <span>Users</span>
+        </a>
+        <a href="{% url 'admin_facilities' %}"
+            class="{% if request.resolver_match.url_name == 'admin_facilities' %}active{% endif %}">
+            <span class="material-icons text-lg">meeting_room</span>
+            <span>Facilities</span>
+        </a>
+
+        <a href="#" onclick="openModal()" class="text-red-500 flex flex-col items-center">
+            <span class="material-icons text-lg">logout</span>
+            <span>Logout</span>
+        </a>
+    </div>
+
+    <!-- ---------- LOGOUT MODAL (ADDED) ---------- -->
+    <div id="logoutModal" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-xl p-6 w-80 text-center shadow-lg">
+            <h3 class="text-lg font-semibold mb-2">Confirm Logout</h3>
+            <p class="text-sm text-gray-500 mb-4">Are you sure you want to logout?</p>
+
+            <div class="flex gap-2">
+                <button onclick="closeModal()" class="flex-1 py-2 bg-gray-100 rounded-lg">Cancel</button>
+                <a href="{% url 'logout' %}" class="flex-1 py-2 bg-red-600 text-white rounded-lg text-center">Logout</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ---------- JS ---------- -->
+    <script>
+        let lastScrollTop = 0;
+        const mobileNav = document.getElementById('mobileNav');
+
+        let isHidden = false;
+        let touchStartY = 0;
+        let touchEndY = 0;
+
+        function showNav() {
+            mobileNav.classList.remove('hide');
+            isHidden = false;
+        }
+
+        function hideNav() {
+            mobileNav.classList.add('hide');
+            isHidden = true;
+        }
+
+        window.addEventListener('scroll', () => {
+            const st = window.pageYOffset || document.documentElement.scrollTop;
+
+            if (st > lastScrollTop && st > 80) {
+                if (!isHidden) hideNav();
+            } else {
+                if (isHidden) showNav();
+            }
+
+            lastScrollTop = st <= 0 ? 0 : st;
+        });
+
+        document.addEventListener('click', () => {
+            if (isHidden) showNav();
+        });
+
+        document.addEventListener('touchstart', (e) => {
+            touchStartY = e.changedTouches[0].screenY;
+        });
+
+        document.addEventListener('touchend', (e) => {
+            touchEndY = e.changedTouches[0].screenY;
+
+            if (touchStartY - touchEndY > 50) showNav();
+            if (touchEndY - touchStartY > 50) hideNav();
+        });
+
+        // DROPDOWN
+        const profileBtn = document.getElementById('profileBtn');
+        const dropdown = document.getElementById('dropdownMenu');
+
+        profileBtn.addEventListener('click', () => {
+            dropdown.classList.toggle('hidden');
+        });
+
+        window.addEventListener('click', (e) => {
+            if (!profileBtn.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.classList.add('hidden');
+            }
+        });
+
+        // MODAL
+        function openModal() {
+            const modal = document.getElementById('logoutModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('logoutModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            const btn = document.getElementById("notifBtn");
+            const dropdown = document.getElementById("notifDropdown");
+            const mobilePanel = document.getElementById("notifMobile");
+            const closeMobile = document.getElementById("closeNotifMobile");
+            const notifList = document.getElementById("notifList");
+
+            // 🎯 ICON MAPPER
+            function getIcon(type) {
+                switch (type) {
+                    case "reservation":
+                        return '<span class="material-icons text-blue-500">event</span>';
+                    case "user":
+                        return '<span class="material-icons text-green-500">person_add</span>';
+                    case "approval":
+                        return '<span class="material-icons text-green-600">check_circle</span>';
+                    case "rejection":
+                        return '<span class="material-icons text-red-500">cancel</span>';
+                    default:
+                        return '<span class="material-icons">notifications</span>';
+                }
+            }
+
+            // 🚀 LOAD NOTIFICATIONS
+            function loadNotifications() {
+                fetch('/notifications/')
+                    .then(res => res.json())
+                    .then(data => {
+
+                        // 🔴 UPDATE BADGE
+                        let badge = btn.querySelector('.badge');
+
+                        if (data.unread_count > 0) {
+                            if (!badge) {
+                                badge = document.createElement("span");
+                                badge.className = "badge absolute -top-1 -right-1 min-w-[16px] h-4 px-1 text-[10px] bg-red-500 text-white rounded-full flex items-center justify-center";
+                                btn.appendChild(badge);
+                            }
+                            badge.innerText = data.unread_count;
+                        } else {
+                            if (badge) badge.remove();
+                        }
+
+                        // 📋 TARGET BOTH LISTS
+                        const desktopList = notifList;
+                        const mobileList = document.getElementById("notifMobileList");
+
+                        desktopList.innerHTML = "";
+                        mobileList.innerHTML = "";
+
+                        // ❌ EMPTY STATE
+                        if (!data.notifications || data.notifications.length === 0) {
+
+                            const emptyHTML = `
+                    <div class="flex flex-col items-center justify-center py-6 text-gray-400">
+                        <span class="material-icons text-4xl mb-2">notifications_none</span>
+                        <p class="text-sm">No notifications</p>
+                    </div>
+                `;
+
+                            desktopList.innerHTML = emptyHTML;
+                            mobileList.innerHTML = emptyHTML;
+                            return;
+                        }
+
+                        // ✅ LOOP NOTIFICATIONS (FIXED)
+                        data.notifications.forEach(n => {
+
+                            // 🔵 DESKTOP ITEM
+                            const desktopItem = document.createElement("div");
+                            desktopItem.className = "flex items-start gap-3 px-3 py-2 hover:bg-gray-50 transition cursor-pointer";
+
+                            desktopItem.innerHTML = `
+                    <div class="mt-1">${getIcon(n.type)}</div>
+                    <div class="text-sm text-gray-700">
+                        ${n.message}
+                        <div class="text-xs text-gray-400">${n.time || ""}</div>
+                    </div>
+                `;
+
+                            desktopItem.addEventListener("click", () => handleNotificationClick(n));
+
+                            // 📱 MOBILE ITEM
+                            const mobileItem = document.createElement("div");
+                            mobileItem.className = desktopItem.className;
+                            mobileItem.innerHTML = desktopItem.innerHTML;
+
+                            mobileItem.addEventListener("click", () => handleNotificationClick(n));
+
+                            // ✅ APPEND BOTH
+                            desktopList.appendChild(desktopItem);
+                            mobileList.appendChild(mobileItem);
+                        });
+
+                    })
+                    .catch(err => console.error("Notification error:", err));
+            }
+
+            // 🔥 HANDLE CLICK (FIXED FLOW)
+            function handleNotificationClick(n) {
+
+                console.log("Clicked notification:", n);
+
+                // ❗ Prevent double execution
+                if (!n || !n.id) return;
+
+                // ✅ Mark as read FIRST (fire and forget)
+                fetch(`/notifications/${n.id}/read/`, {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": getCookie("csrftoken")
+                    }
+                }).catch(() => { });
+
+                // 🔥 ROUTING (ONLY ONE WILL RUN)
+                let url = null;
+
+                if (n.type === "reservation" && n.reservation_id) {
+                    url = `/admin_booking_detail/${n.reservation_id}/`;
+                }
+                else if (n.type === "user") {
+                    url = `/admin_users/`;
+                }
+                else if ((n.type === "approval" || n.type === "rejection") && n.reservation_id) {
+                    url = `/admin_booking_detail/${n.reservation_id}/`;
+                }
+
+                if (url) {
+                    window.location.href = url;
+                } else {
+                    console.log("No route for notification:", n);
+                }
+            }
+
+            // 🔔 OPEN DROPDOWN
+            btn.addEventListener("click", function (e) {
+                e.stopPropagation();
+
+                fetch('/notifications/read/', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken')
+                    }
+                }).then(() => {
+                    loadNotifications();
+                });
+
+                if (window.innerWidth < 640) {
+                    mobilePanel.classList.remove("hidden");
+                } else {
+                    dropdown.classList.toggle("hidden");
+                }
+            });
+
+            // ❌ CLOSE OUTSIDE CLICK
+            document.addEventListener("click", function (e) {
+                if (dropdown && !dropdown.contains(e.target) && !btn.contains(e.target)) {
+                    dropdown.classList.add("hidden");
+                }
+            });
+
+            // ❌ CLOSE MOBILE
+            if (closeMobile) {
+                closeMobile.addEventListener("click", function () {
+                    mobilePanel.classList.add("hidden");
+                });
+            }
+
+            // ⏱ AUTO REFRESH
+            setInterval(loadNotifications, 5000);
+
+            // 🚀 INIT
+            loadNotifications();
+
+        });
+
+        // 🍪 COOKIE HELPER
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie) {
+                const cookies = document.cookie.split(';');
+                for (let c of cookies) {
+                    c = c.trim();
+                    if (c.startsWith(name + '=')) {
+                        cookieValue = decodeURIComponent(c.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
+
+</body>
+
+</html>

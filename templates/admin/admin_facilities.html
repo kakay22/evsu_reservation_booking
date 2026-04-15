@@ -1,0 +1,74 @@
+{% extends 'admin/admin_base.html' %}
+{% block title %}Facilities Management{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto py-6 space-y-6">
+
+    <!-- PAGE HEADER -->
+    <div class="flex flex-col md:flex-row md:justify-between md:items-center">
+        <h2 class="text-3xl font-bold text-gray-900">Facilities</h2>
+        <p class="mt-2 md:mt-0 text-gray-600">Manage all facilities available for reservation.</p>
+    </div>
+
+    <!-- MESSAGES -->
+    <!-- {% if messages %}
+    <div class="space-y-2">
+        {% for message in messages %}
+            <div class="p-4 rounded shadow-sm text-white {% if message.tags == 'error' %}bg-red-600{% else %}bg-green-600{% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %} -->
+
+    <!-- ADD FACILITY BUTTON -->
+    <div class="flex justify-end mb-4">
+        <a href="" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition">
+            Add New Facility
+        </a>
+    </div>
+
+    <!-- FACILITIES TABLE -->
+    <div class="bg-white shadow rounded-2xl p-6 md:p-8 overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created At</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for facility in facilities %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ forloop.counter }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ facility.name }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ facility.type|default:"N/A" }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="inline-block px-3 py-1 text-sm font-medium rounded-full
+                            {% if facility.is_active %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                            {% if facility.is_active %}Active{% else %}Inactive{% endif %}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ facility.created_at|date:"M d, Y" }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <a href="" class="text-blue-600 hover:text-blue-800 mr-3">Edit</a>
+                        <a href="" class="text-red-600 hover:text-red-800">Delete</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="px-6 py-4 text-center text-gray-500">
+                        No facilities found. Add a new facility to get started.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+{% endblock %}

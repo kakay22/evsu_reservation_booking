@@ -1,0 +1,423 @@
+{% extends 'admin/admin_base.html' %}
+{% block title %}Reservations Calendar{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto py-4 space-y-6">
+
+    <!-- HEADER -->
+    <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-2">
+        <h2 class="text-2xl md:text-3xl font-bold text-gray-900">Reservations Calendar</h2>
+        <div class="flex gap-2 items-center">
+            <button onclick="prevMonth()" class="px-3 py-1 bg-gray-200 rounded-lg">←</button>
+            <h3 id="monthLabel" class="text-base md:text-lg font-semibold"></h3>
+            <button onclick="nextMonth()" class="px-3 py-1 bg-gray-200 rounded-lg">→</button>
+            <button onclick="goToday()" class="px-3 py-1 bg-blue-600 text-white rounded-lg">Today</button>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
+
+        <!-- CALENDAR -->
+        <div class="lg:col-span-3 bg-white shadow rounded-2xl p-4">
+            <div class="grid grid-cols-7 text-center text-xs md:text-sm font-semibold text-gray-600 mb-2">
+                <div>Sun</div>
+                <div>Mon</div>
+                <div>Tue</div>
+                <div>Wed</div>
+                <div>Thu</div>
+                <div>Fri</div>
+                <div>Sat</div>
+            </div>
+            <div id="calendar" class="grid grid-cols-7 gap-2"></div>
+        </div>
+
+        <!-- SIDELIST -->
+        <div class="bg-white shadow rounded-2xl p-4">
+
+            <h3 class="font-bold mb-3">Upcoming</h3>
+
+            <!-- FILTER TABS -->
+            <div class="flex gap-2 mb-3 flex-wrap">
+
+                <button onclick="setSideFilter('all', this)"
+                    class="side-filter px-3 py-1 text-xs rounded-lg border bg-gray-900 text-white">
+                    All <span id="count-all" class="ml-1 text-[10px] opacity-80"></span>
+                </button>
+
+                <button onclick="setSideFilter('pending', this)"
+                    class="side-filter px-3 py-1 text-xs rounded-lg border">
+                    Pending <span id="count-pending" class="ml-1 text-[10px] opacity-80"></span>
+                </button>
+
+                <button onclick="setSideFilter('approved', this)"
+                    class="side-filter px-3 py-1 text-xs rounded-lg border">
+                    Approved <span id="count-approved" class="ml-1 text-[10px] opacity-80"></span>
+                </button>
+
+                <button onclick="setSideFilter('rejected', this)"
+                    class="side-filter px-3 py-1 text-xs rounded-lg border">
+                    Rejected <span id="count-rejected" class="ml-1 text-[10px] opacity-80"></span>
+                </button>
+
+            </div>
+
+            <!-- LIST -->
+            <div id="sideList" class="space-y-2 max-h-[400px] overflow-y-auto"></div>
+
+        </div>
+    </div>
+</div>
+
+<!-- MODAL -->
+<div id="eventModal" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50">
+    <div id="modalContent" class="bg-white rounded-xl p-5 w-full max-w-lg">
+        <h3 class="text-xl font-bold mb-4">Reservations</h3>
+        <div id="eventList" class="space-y-3 max-h-96 overflow-y-auto"></div>
+        <button type="button" id="closeBtn" class="mt-4 w-full bg-gray-200 py-2 rounded-lg">Close</button>
+    </div>
+</div>
+
+<script>
+    const reservations = [
+        {% for res in reservations %}
+    {
+        id: "{{ res.id }}",
+            date: "{{ res.date|date:'Y-m-d' }}",
+                user: "{{ res.user.username }}",
+                    facility: "{{ res.facility.name }}",
+                        status: "{{ res.status }}",
+                            time: "{{ res.start_time|time:'h:i A' }} - {{ res.end_time|time:'h:i A' }}"
+    },
+    {% endfor %}
+];
+
+    let currentDate = new Date();
+    const today = new Date().toISOString().split('T')[0];
+
+    function getColor(status) {
+        if (status === 'approved') return 'bg-green-100 text-green-700';
+        if (status === 'pending') return 'bg-yellow-100 text-yellow-700';
+        return 'bg-red-100 text-red-700';
+    }
+
+    function renderCalendar() {
+        const calendar = document.getElementById('calendar');
+        calendar.innerHTML = '';
+
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth();
+
+        document.getElementById('monthLabel').innerText =
+            currentDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+
+        const firstDay = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+        // empty cells before start
+        for (let i = 0; i < firstDay; i++) {
+            calendar.innerHTML += `<div class="aspect-square"></div>`;
+        }
+
+        for (let day = 1; day <= daysInMonth; day++) {
+            const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            const isToday = dateStr === today;
+
+            const dayReservations = reservations.filter(r => r.date === dateStr);
+
+            let eventsHtml = '';
+
+            dayReservations.slice(0, 2).forEach(r => {
+                eventsHtml += `
+                <div class="text-[10px] sm:text-xs truncate px-1 rounded ${getColor(r.status)}">
+                    <div class="font-semibold truncate">${r.facility}</div>
+                    <div class="text-[10px] sm:text-xs">${r.time}</div>
+                </div>
+            `;
+            });
+
+            if (dayReservations.length > 2) {
+                eventsHtml += `
+                <div class="text-[10px] text-gray-500">
+                    +${dayReservations.length - 2} more
+                </div>
+            `;
+            }
+
+            calendar.innerHTML += `
+            <div onclick="showEvents('${dateStr}')"
+                class="
+                    aspect-square
+                    sm:aspect-auto
+                    min-h-[70px] sm:min-h-[90px]
+                    border rounded-lg
+                    p-1 sm:p-2
+                    cursor-pointer
+                    flex flex-col
+                    overflow-hidden
+                    ${isToday ? 'ring-2 ring-blue-500 bg-blue-50' : 'hover:bg-gray-50'}
+                ">
+
+                <span class="text-xs sm:text-sm font-semibold ${isToday ? 'text-blue-600' : ''}">
+                    ${day}
+                </span>
+
+                <div class="flex flex-col gap-1 mt-1 overflow-hidden">
+                    ${eventsHtml}
+                </div>
+
+            </div>
+        `;
+        }
+
+        renderSideList();
+    }
+
+    //count for sidebar filters
+    function updateSideCounts() {
+
+        const counts = {
+            all: reservations.length,
+            pending: 0,
+            approved: 0,
+            rejected: 0
+        };
+
+        reservations.forEach(r => {
+            if (r.status === "pending") counts.pending++;
+            if (r.status === "approved") counts.approved++;
+            if (r.status === "rejected") counts.rejected++;
+        });
+
+        document.getElementById("count-all").innerText = counts.all;
+        document.getElementById("count-pending").innerText = counts.pending;
+        document.getElementById("count-approved").innerText = counts.approved;
+        document.getElementById("count-rejected").innerText = counts.rejected;
+    }
+
+    let sideFilter = "all";
+
+    // 🚀 SET FILTER (GLOBAL)
+    window.setSideFilter = function (type, el) {
+        sideFilter = type;
+
+        // update active tab UI
+        document.querySelectorAll('.side-filter').forEach(btn => {
+            btn.classList.remove('bg-gray-900', 'text-white');
+        });
+
+        if (el) {
+            el.classList.add('bg-gray-900', 'text-white');
+        }
+
+        renderSideList();
+    };
+
+    // 🚀 RENDER SIDE LIST
+    function renderSideList() {
+        const side = document.getElementById('sideList');
+
+        let filtered = [...reservations];
+
+        // 🔥 FILTER LOGIC
+        if (sideFilter !== "all") {
+            filtered = filtered.filter(r => r.status === sideFilter);
+        }
+
+        // 📅 SORT BY DATE
+        const sorted = filtered.sort((a, b) =>
+            new Date(a.date) - new Date(b.date)
+        );
+
+        // 📋 RENDER UI
+        side.innerHTML = sorted.slice(0, 10).map(r => `
+        <div onclick="showEvents('${r.date}')"
+            class="border rounded-xl p-3 shadow-sm bg-white space-y-2 cursor-pointer hover:bg-gray-50 transition">
+
+            <!-- TOP -->
+            <div class="flex justify-between items-start">
+                <p class="font-semibold text-sm sm:text-base truncate">
+                    ${r.facility}
+                </p>
+                <span class="text-[10px] sm:text-xs px-2 py-1 rounded ${getColor(r.status)}">
+                    ${r.status}
+                </span>
+            </div>
+
+            <!-- DETAILS -->
+            <div class="text-[11px] sm:text-xs text-gray-600 space-y-[2px]">
+
+                <p class="flex items-center gap-1">
+                    <span class="material-icons text-[14px]">calendar_today</span>
+                    ${r.date}
+                </p>
+
+                <p class="flex items-center gap-1">
+                    <span class="material-icons text-[14px]">schedule</span>
+                    ${r.time}
+                </p>
+
+                <p class="flex items-center gap-1 truncate">
+                    <span class="material-icons text-[14px]">person</span>
+                    ${r.user}
+                </p>
+
+            </div>
+
+        </div>
+    `).join('');
+    }
+
+    updateSideCounts();
+    renderSideList();
+
+    //show events of the day in modal
+    function showEvents(date) {
+        const modal = document.getElementById('eventModal');
+        const list = document.getElementById('eventList');
+
+        const dayEvents = reservations.filter(r => r.date === date);
+
+        if (dayEvents.length === 0) {
+            list.innerHTML = `<p class="text-gray-500 text-center">No reservations</p>`;
+        } else {
+            list.innerHTML = dayEvents.map(r => `
+            <div class="border p-3 rounded-lg space-y-2">
+
+                <!-- TOP -->
+                <div class="flex justify-between items-center">
+                    <p class="font-semibold text-lg">${r.facility}</p>
+                    <span class="text-xs px-2 py-1 rounded ${getColor(r.status)}">
+                        ${r.status.toUpperCase()}
+                    </span>
+                </div>
+
+                <!-- DETAILS -->
+                <div class="text-sm text-gray-700 space-y-1">
+                    <p><strong>User:</strong> ${r.user}</p>
+                    <p><strong>Date:</strong> ${r.date}</p>
+                    <p><strong>Time:</strong> ${r.time}</p>
+                </div>
+
+                <!-- ACTIONS -->
+                ${r.status === 'pending' ? `
+                <div class="flex gap-2 mt-2">
+                    <button onclick="updateStatus('${r.id}','approved', this)" 
+                        class="flex-1 bg-green-600 hover:bg-green-700 text-white py-1 rounded">
+                        Approve
+                    </button>
+                    <button onclick="updateStatus('${r.id}','rejected', this)" 
+                        class="flex-1 bg-red-600 hover:bg-red-700 text-white py-1 rounded">
+                        Reject
+                    </button>
+                </div>
+                ` : ''}
+
+                <!-- 🔥 VIEW DETAILS BUTTON -->
+                <button onclick="window.location.href='/admin_booking_detail/${r.id}/'" 
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded mt-2">
+                    View Details
+                </button>
+
+                <!-- DELETE -->
+                <button onclick="deleteReservation('${r.id}', this)" 
+                    class="w-full bg-gray-200 hover:bg-gray-300 py-1 rounded mt-1">
+                    Delete
+                </button>
+
+            </div>
+        `).join('');
+        }
+
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+
+    function closeModal() {
+        const modal = document.getElementById('eventModal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+
+    /* FIXED EVENTS */
+    document.getElementById('closeBtn').addEventListener('click', closeModal);
+
+    document.getElementById('eventModal').addEventListener('click', function (e) {
+        if (e.target.id === 'eventModal') closeModal();
+    });
+
+    /* NAV */
+    function prevMonth() { currentDate.setMonth(currentDate.getMonth() - 1); renderCalendar(); }
+    function nextMonth() { currentDate.setMonth(currentDate.getMonth() + 1); renderCalendar(); }
+    function goToday() { currentDate = new Date(); renderCalendar(); }
+
+    renderCalendar();
+
+    //accept reject bookings
+    function updateStatus(id, status, el) {
+        setLoading(el, true);
+
+        fetch(`/admin_reservations/${id}/status/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: JSON.stringify({ status })
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(`Reservation ${status}`, "success");
+
+                    // update locally instead of reload
+                    const item = reservations.find(r => r.id == id);
+                    if (item) item.status = status;
+
+                    renderCalendar();
+                    showEvents(item.date);
+                } else {
+                    showToast("Something went wrong", "error");
+                }
+            })
+            .catch(() => showToast("Server error", "error"))
+            .finally(() => setLoading(el, false));
+    }
+
+    //delete reservation
+    function deleteReservation(id, el) {
+        if (!confirm("Delete this reservation?")) return;
+
+        setLoading(el, true);
+
+        fetch(`/admin_reservations/${id}/delete/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCSRFToken()
+            }
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    showToast("Deleted successfully", "success");
+
+                    const index = reservations.findIndex(r => r.id == id);
+                    if (index !== -1) reservations.splice(index, 1);
+
+                    renderCalendar();
+                    document.getElementById('eventList').innerHTML = "";
+                } else {
+                    showToast("Delete failed", "error");
+                }
+            })
+            .catch(() => showToast("Server error", "error"))
+            .finally(() => setLoading(el, false));
+    }
+
+    function getCSRFToken() {
+        return document.cookie.split('; ')
+            .find(r => r.startsWith('csrftoken'))
+            .split('=')[1];
+    }
+</script>
+
+{% endblock %}

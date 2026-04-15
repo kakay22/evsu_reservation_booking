@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EVSU Reserve | Smart Facility Booking</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+<style>
+html { scroll-behavior: smooth; }
+
+.hero-gradient {
+    background: linear-gradient(to bottom right, #ffffff, #f3f4f6);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Floating icons */
+.floating-icon {
+    position: absolute;
+    opacity: 0.05;
+    font-size: 80px;
+    animation: floatIcon 8s infinite ease-in-out;
+}
+
+.icon1 { top: 10%; left: 5%; }
+.icon2 { top: 20%; right: 10%; }
+.icon3 { bottom: 15%; left: 15%; }
+.icon4 { bottom: 10%; right: 5%; }
+
+@keyframes floatIcon {
+    0%,100% { transform: translateY(0); }
+    50% { transform: translateY(-20px); }
+}
+
+/* Navbar */
+.glass {
+    backdrop-filter: blur(10px);
+    background: rgba(255,255,255,0.8);
+}
+</style>
+</head>
+
+<body class="font-sans text-gray-800">
+
+<!-- NAVBAR -->
+<nav class="fixed top-0 w-full z-50 glass border-b">
+    <div class="flex justify-between items-center px-6 md:px-10 py-4 max-w-7xl mx-auto">
+
+        <div class="flex items-center gap-2">
+            <span class="material-icons">event</span>
+            <h1 class="font-semibold text-lg">Reserve</h1>
+        </div>
+
+        <!-- Desktop -->
+        <div class="hidden md:flex space-x-6 items-center">
+            <a href="{% url 'login' %}" class="text-gray-600 hover:text-black">Login</a>
+            <a href="{% url 'register' %}" class="bg-black text-white px-5 py-2 rounded-xl hover:bg-gray-800">
+                Sign Up
+            </a>
+        </div>
+
+        <!-- Mobile Button -->
+        <button class="md:hidden" onclick="toggleMenu()">
+            <span class="material-icons">menu</span>
+        </button>
+    </div>
+
+    <!-- Mobile Menu -->
+    <div id="mobileMenu" class="hidden md:hidden px-6 pb-4">
+        <a href="" class="block py-2">Login</a>
+        <a href="{% url 'register' %}" class="block py-2 bg-black text-white rounded-lg text-center">Sign Up</a>
+    </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero-gradient text-center py-20 md:py-28 px-6 mt-20">
+
+    <!-- Floating Icons (hidden on mobile) -->
+    <div class="hidden md:block">
+        <span class="material-icons floating-icon icon1">event</span>
+        <span class="material-icons floating-icon icon2">meeting_room</span>
+        <span class="material-icons floating-icon icon3">schedule</span>
+        <span class="material-icons floating-icon icon4">verified</span>
+    </div>
+
+    <div class="max-w-3xl mx-auto">
+        <h2 class="text-3xl md:text-5xl font-semibold leading-tight">
+            Reserve Facilities <br class="hidden md:block"> the Smart Way
+        </h2>
+
+        <p class="mt-6 text-gray-500 text-base md:text-lg">
+            Book university spaces, request equipment, and manage approvals — all in one place.
+        </p>
+
+        <div class="mt-8 flex flex-col sm:flex-row justify-center gap-4">
+            <a href="{% url 'register' %}" class="bg-black text-white px-6 py-3 rounded-xl hover:bg-gray-800">
+                Create Account
+            </a>
+
+            <a href="#how" class="border px-6 py-3 rounded-xl hover:bg-gray-100">
+                How it Works
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- FACILITIES -->
+<section class="py-16 md:py-20 px-6 md:px-10">
+    <div class="max-w-6xl mx-auto text-center">
+        <h3 class="text-2xl md:text-3xl font-semibold mb-12">Available Facilities</h3>
+
+        <div class="grid sm:grid-cols-2 md:grid-cols-3 gap-6 md:gap-8">
+
+            <div class="bg-white p-6 rounded-2xl shadow-sm hover:shadow-lg transition hover:-translate-y-2">
+                <span class="material-icons text-4xl mb-4">meeting_room</span>
+                <h4 class="font-semibold text-lg">Function Rooms</h4>
+                <p class="text-gray-500">GS Function Room, ORDEX</p>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl shadow-sm hover:shadow-lg transition hover:-translate-y-2">
+                <span class="material-icons text-4xl mb-4">school</span>
+                <h4 class="font-semibold text-lg">Academic Rooms</h4>
+                <p class="text-gray-500">EB 208, AVR, Inner Court</p>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl shadow-sm hover:shadow-lg transition hover:-translate-y-2">
+                <span class="material-icons text-4xl mb-4">theater_comedy</span>
+                <h4 class="font-semibold text-lg">Auditorium</h4>
+                <p class="text-gray-500">For large events</p>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- EQUIPMENT -->
+<section class="bg-gray-50 py-16 md:py-20 px-6 md:px-10">
+    <div class="max-w-6xl mx-auto text-center">
+        <h3 class="text-2xl md:text-3xl font-semibold mb-12">Equipment Available</h3>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+
+            <div>
+                <span class="material-icons text-4xl">speaker</span>
+                <p>Sound System</p>
+            </div>
+
+            <div>
+                <span class="material-icons text-4xl">videocam</span>
+                <p>Projector</p>
+            </div>
+
+            <div>
+                <span class="material-icons text-4xl">chair</span>
+                <p>Chairs</p>
+            </div>
+
+            <div>
+                <span class="material-icons text-4xl">computer</span>
+                <p>Computer</p>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how" class="py-16 md:py-20 px-6 md:px-10 text-center">
+    <div class="max-w-5xl mx-auto">
+        <h3 class="text-2xl md:text-3xl font-semibold mb-12">How It Works</h3>
+
+        <div class="grid md:grid-cols-3 gap-10">
+
+            <div>
+                <span class="material-icons text-4xl mb-3">person_add</span>
+                <h4 class="font-semibold">Create Account</h4>
+                <p class="text-gray-500">Sign up to start booking</p>
+            </div>
+
+            <div>
+                <span class="material-icons text-4xl mb-3">edit_calendar</span>
+                <h4 class="font-semibold">Submit Request</h4>
+                <p class="text-gray-500">Fill out reservation form</p>
+            </div>
+
+            <div>
+                <span class="material-icons text-4xl mb-3">verified</span>
+                <h4 class="font-semibold">Get Approval</h4>
+                <p class="text-gray-500">Admin reviews your request</p>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="bg-black text-white text-center py-16 md:py-20 px-6">
+    <div class="max-w-xl mx-auto">
+        <h3 class="text-2xl md:text-3xl font-semibold">Ready to Reserve?</h3>
+
+        <p class="mt-4 text-gray-300">
+            Create your account and start booking today.
+        </p>
+
+        <a href="{% url 'register' %}" class="mt-6 inline-block bg-white text-black px-6 py-3 rounded-xl">
+            Sign Up Now
+        </a>
+    </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="text-center py-6 text-gray-500 text-sm">
+    © 2026 EVSU Reservation System
+</footer>
+
+<script>
+function toggleMenu() {
+    document.getElementById('mobileMenu').classList.toggle('hidden');
+}
+</script>
+
+</body>
+</html>

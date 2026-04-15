@@ -1,0 +1,110 @@
+{% extends 'user/base.html' %}
+{% load widget_tweaks %}
+{% block title %}Facilities{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto space-y-8">
+
+    <h2 class="text-3xl font-semibold text-gray-800">Facilities</h2>
+
+    <!-- Display messages -->
+    {% if messages %}
+        <div class="space-y-2">
+            {% for message in messages %}
+                <div class="p-4 rounded shadow-sm text-white {% if message.tags == 'error' %}bg-red-500{% else %}bg-green-500{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    {% if facilities %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for facility in facilities %}
+            <div class="bg-white rounded-2xl shadow-lg p-4 flex flex-col">
+                
+                {% if facility.image %}
+                    <img src="{{ facility.image.url }}" 
+                         alt="{{ facility.name }}" 
+                         class="rounded-xl mb-4 w-full h-48 object-cover">
+                {% else %}
+                    <img src="/static/images/default_facility.png" 
+                         alt="{{ facility.name }}" 
+                         class="rounded-xl mb-4 w-full h-48 object-cover">
+                {% endif %}
+
+                <h3 class="text-xl font-semibold text-gray-800">{{ facility.name }}</h3>
+                <p class="text-gray-500 mb-2">{{ facility.description|default:"No description available." }}</p>
+                <p class="text-gray-400 text-sm mb-4">Location: {{ facility.location|default:"N/A" }}</p>
+                <button 
+                    @click="openModal = true; selectedFacility={{ facility.id }}; resetForm()"
+                    class="mt-auto bg-black text-white py-2 px-4 rounded-xl hover:bg-gray-800 transition shadow"
+                >
+                    Book
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-12">
+            <svg class="mx-auto h-24 w-24 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <p class="text-gray-500 text-lg">No facilities available at the moment.</p>
+        </div>
+    {% endif %}
+
+    <!-- BOOKING MODAL -->
+    <div x-data="{ openModal: false, selectedFacility: null }" x-show="openModal" class="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+        <div @click.away="openModal = false" class="bg-white rounded-2xl w-full max-w-lg p-6 space-y-4">
+
+            <h3 class="text-2xl font-semibold text-gray-800">Book Facility</h3>
+
+            <form method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="facility" :value="selectedFacility">
+
+                <div class="grid grid-cols-1 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                        {{ form.date|add_class:"w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-gray-400 transition" }}
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Start Time</label>
+                        {{ form.start_time|add_class:"w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-gray-400 transition" }}
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">End Time</label>
+                        {{ form.end_time|add_class:"w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-gray-400 transition" }}
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                        {{ form.notes|add_class:"w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-gray-400 transition" }}
+                    </div>
+                </div>
+
+                <div class="flex justify-end mt-4 gap-2">
+                    <button type="button" @click="openModal = false" class="py-2 px-4 rounded-xl border hover:bg-gray-100 transition">Cancel</button>
+                    <button type="submit" class="py-2 px-4 rounded-xl bg-black text-white hover:bg-gray-800 transition">Submit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+
+<script>
+function resetForm() {
+    // Clear modal form inputs if needed
+    const form = document.querySelector('form');
+    if(form) form.reset();
+}
+</script>
+
+{% endblock %}

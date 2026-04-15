@@ -1,0 +1,61 @@
+{% extends 'user/base.html' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+    <!-- Total Reservations -->
+    <div class="bg-white rounded-2xl shadow p-6 flex flex-col">
+        <h3 class="text-gray-500 font-medium">Total Reservations</h3>
+        <p class="text-3xl font-semibold mt-2">{{ total_reservations }}</p>
+    </div>
+
+    <!-- Pending Approvals -->
+    <div class="bg-white rounded-2xl shadow p-6 flex flex-col">
+        <h3 class="text-gray-500 font-medium">Pending Approvals</h3>
+        <p class="text-3xl font-semibold mt-2">{{ pending_approvals }}</p>
+    </div>
+
+    <!-- Upcoming Reservations -->
+    <div class="bg-white rounded-2xl shadow p-6 flex flex-col">
+        <h3 class="text-gray-500 font-medium">Upcoming Reservations</h3>
+        <p class="text-3xl font-semibold mt-2">{{ upcoming_reservations }}</p>
+    </div>
+</div>
+
+<!-- Recent Reservations Table -->
+<div class="mt-10 bg-white rounded-2xl shadow overflow-x-auto">
+    <table class="min-w-full table-auto">
+        <thead class="bg-gray-50">
+            <tr>
+                <th class="px-6 py-3 text-left text-gray-500 uppercase text-xs">Facility</th>
+                <th class="px-6 py-3 text-left text-gray-500 uppercase text-xs">Date</th>
+                <th class="px-6 py-3 text-left text-gray-500 uppercase text-xs">Time</th>
+                <th class="px-6 py-3 text-left text-gray-500 uppercase text-xs">Status</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+            {% for res in recent_reservations %}
+            <tr>
+                <td class="px-6 py-4">{{ res.facility.name }}</td>
+                <td class="px-6 py-4">{{ res.date }}</td>
+                <td class="px-6 py-4">{{ res.time_slot }}</td>
+                <td class="px-6 py-4">
+                    {% if res.status == 'approved' %}
+                        <span class="text-green-600 font-medium">Approved</span>
+                    {% elif res.status == 'pending' %}
+                        <span class="text-yellow-500 font-medium">Pending</span>
+                    {% else %}
+                        <span class="text-red-600 font-medium">Rejected</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" class="px-6 py-4 text-gray-400 text-center">No reservations yet</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

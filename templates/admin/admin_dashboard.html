@@ -1,0 +1,261 @@
+{% extends 'admin/admin_base.html' %}
+{% load static %}
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
+
+    <!-- HEADER -->
+    <div>
+        <h2 class="text-2xl sm:text-3xl font-semibold text-gray-900">
+            Admin Dashboard
+        </h2>
+        <p class="text-sm text-gray-500">Overview of system activity</p>
+    </div>
+
+    <!-- STATS -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+
+        <div class="bg-white rounded-2xl p-4 shadow-sm">
+            <p class="text-xs text-gray-500">Users</p>
+            <h3 class="text-xl font-semibold">{{ total_users }}</h3>
+        </div>
+
+        <div class="bg-white rounded-2xl p-4 shadow-sm">
+            <p class="text-xs text-gray-500">Facilities</p>
+            <h3 class="text-xl font-semibold">{{ total_facilities }}</h3>
+        </div>
+
+        <div class="bg-white rounded-2xl p-4 shadow-sm">
+            <p class="text-xs text-gray-500">Pending</p>
+            <h3 class="text-xl font-semibold">{{ pending_reservations }}</h3>
+        </div>
+
+        <div class="bg-white rounded-2xl p-4 shadow-sm">
+            <p class="text-xs text-gray-500">Approved</p>
+            <h3 class="text-xl font-semibold">{{ approved_reservations }}</h3>
+        </div>
+
+    </div>
+
+    <!-- FILTER TABS -->
+    <div class="flex gap-2 flex-wrap">
+
+        <a href="?status=all"
+           class="px-3 py-1 rounded-lg text-sm border {% if status_filter == 'all' %}bg-gray-900 text-white{% else %}bg-white{% endif %}">
+            All
+        </a>
+
+        <a href="?status=pending"
+           class="px-3 py-1 rounded-lg text-sm border {% if status_filter == 'pending' %}bg-yellow-500 text-white{% else %}bg-white{% endif %}">
+            Pending
+        </a>
+
+        <a href="?status=approved"
+           class="px-3 py-1 rounded-lg text-sm border {% if status_filter == 'approved' %}bg-green-600 text-white{% else %}bg-white{% endif %}">
+            Approved
+        </a>
+
+        <a href="?status=rejected"
+           class="px-3 py-1 rounded-lg text-sm border {% if status_filter == 'rejected' %}bg-red-600 text-white{% else %}bg-white{% endif %}">
+            Rejected
+        </a>
+
+    </div>
+
+    <!-- RECENT RESERVATIONS -->
+    <div class="bg-white rounded-2xl shadow-sm p-4 sm:p-6">
+
+        <h3 class="text-lg font-semibold mb-4">Latest Reservations</h3>
+
+        <!-- MOBILE -->
+        <div class="space-y-4 md:hidden">
+
+            {% for res in recent_reservations|slice:":10" %}
+            <div class="border rounded-xl p-4 space-y-2">
+
+                <div class="flex justify-between">
+                    <div>
+                        <p class="font-medium">{{ res.user.username }}</p>
+                        <p class="text-xs text-gray-500">{{ res.facility.name }}</p>
+                    </div>
+
+                    <span class="text-xs px-2 py-1 rounded-full
+                        {% if res.status == 'pending' %}bg-yellow-100 text-yellow-700
+                        {% elif res.status == 'approved' %}bg-green-100 text-green-700
+                        {% else %}bg-red-100 text-red-700{% endif %}">
+                        {{ res.status|capfirst }}
+                    </span>
+                </div>
+
+                <p class="text-sm text-gray-600">
+                    📅 {{ res.date|date:"M d, Y" }}<br>
+                    ⏰ {{ res.start_time|time:"h:i A" }} - {{ res.end_time|time:"h:i A" }}
+                </p>
+
+                <!-- ACTIONS -->
+                <div class="flex gap-2">
+
+                    {% if res.status == 'pending' %}
+
+                        <a href=""
+                           class="flex-1 text-center bg-green-600 text-white py-2 rounded-lg text-sm">
+                            Approve
+                        </a>
+
+                        <a href=""
+                           class="flex-1 text-center bg-red-600 text-white py-2 rounded-lg text-sm">
+                            Reject
+                        </a>
+
+                    {% else %}
+
+                        <a href="{% url 'admin_booking_detail' res.id %}"
+                           class="w-full text-center bg-gray-900 text-white py-2 rounded-lg text-sm">
+                            View
+                        </a>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+            {% empty %}
+            <p class="text-center text-gray-500">No reservations found</p>
+            {% endfor %}
+
+        </div>
+
+        <!-- DESKTOP TABLE -->
+        <div class="hidden md:block overflow-x-auto">
+
+            <table class="min-w-full text-sm">
+
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="text-left p-3">User</th>
+                        <th class="text-left p-3">Facility</th>
+                        <th class="text-left p-3">Date</th>
+                        <th class="text-left p-3">Time</th>
+                        <th class="text-left p-3">Status</th>
+                        <th class="text-left p-3">Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for res in recent_reservations|slice:":10" %}
+                    <tr class="border-t hover:bg-gray-50">
+
+                        <td class="p-3">{{ res.user.username }}</td>
+                        <td class="p-3">{{ res.facility.name }}</td>
+                        <td class="p-3">{{ res.date|date:"M d, Y" }}</td>
+                        <td class="p-3">
+                            {{ res.start_time|time:"h:i A" }} - {{ res.end_time|time:"h:i A" }}
+                        </td>
+
+                        <td class="p-3">
+                            <span class="px-2 py-1 rounded-full text-xs
+                                {% if res.status == 'pending' %}bg-yellow-100 text-yellow-700
+                                {% elif res.status == 'approved' %}bg-green-100 text-green-700
+                                {% else %}bg-red-100 text-red-700{% endif %}">
+                                {{ res.status|capfirst }}
+                            </span>
+                        </td>
+
+                        <td class="p-3">
+
+                            {% if res.status == 'pending' %}
+
+                                <div class="flex gap-2">
+
+                                    <div class="flex gap-2">
+
+                                        <button onclick="updateStatus('{{ res.id }}', 'approved', this)"
+                                            class="bg-green-600 text-white px-3 py-1 rounded text-xs">
+                                            Approve
+                                        </button>
+
+                                        <button onclick="updateStatus('{{ res.id }}', 'rejected', this)"
+                                            class="bg-red-600 text-white px-3 py-1 rounded text-xs">
+                                            Reject
+                                        </button>
+
+                                    </div>
+
+                                </div>
+
+                            {% else %}
+
+                                <a href="{% url 'admin_booking_detail' res.id %}"
+                                   class="bg-gray-900 text-white px-3 py-1 rounded text-xs">
+                                    View
+                                </a>
+
+                            {% endif %}
+
+                        </td>
+
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center p-6 text-gray-500">
+                            No reservations found
+                        </td>
+                    </tr>
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+<script>
+    function getCSRFToken() {
+    return document.cookie
+        .split('; ')
+        .find(row => row.startsWith('csrftoken'))
+        ?.split('=')[1];
+}
+
+function updateStatus(id, status, btn) {
+
+    // loading state
+    const originalText = btn.innerText;
+    btn.disabled = true;
+    btn.innerText = "Loading...";
+
+    fetch(`/admin_reservations/${id}/status/`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCSRFToken()
+        },
+        body: JSON.stringify({ status: status })
+    })
+    .then(res => res.json())
+    .then(data => {
+
+        if (data.success) {
+            showToast("Status updated successfully");
+            location.reload(); // or re-render UI later
+        } else {
+            showToast("Failed to update status");
+        }
+
+    })
+    .catch(err => {
+        console.error(err);
+        showToast("Server error");
+    })
+    .finally(() => {
+        btn.disabled = false;
+        btn.innerText = originalText;
+    });
+}
+</script>
+{% endblock %}

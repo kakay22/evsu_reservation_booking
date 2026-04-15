@@ -1,0 +1,76 @@
+{% extends 'admin/admin_base.html' %}
+{% load widget_tweaks %}
+{% block title %}Admin Settings{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto py-6 space-y-6">
+
+    <!-- PAGE HEADER -->
+    <div class="flex flex-col md:flex-row md:justify-between md:items-center">
+        <h2 class="text-3xl font-bold text-gray-900">Settings</h2>
+        <p class="mt-2 md:mt-0 text-gray-600">Update your account credentials and profile settings.</p>
+    </div>
+
+    <!-- DISPLAY MESSAGES -->
+    {% if messages %}
+    <div class="space-y-2">
+        {% for message in messages %}
+            <div class="p-4 rounded shadow-sm text-white {% if message.tags == 'error' %}bg-red-600{% else %}bg-green-600{% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- UPDATE FORM -->
+    <div class="bg-white shadow rounded-2xl p-6 md:p-8">
+        <h3 class="text-xl font-semibold text-gray-900 mb-4">Update Admin Account</h3>
+        <form method="POST" class="grid grid-cols-1 gap-4">
+            {% csrf_token %}
+
+            <!-- Username -->
+            <div class="flex flex-col">
+                {{ form.username.label_tag }}
+                {{ form.username|add_class:"border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none" }}
+                {% if form.username.errors %}
+                    <p class="text-red-600 text-sm mt-1">{{ form.username.errors|striptags }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Email -->
+            <div class="flex flex-col">
+                {{ form.email.label_tag }}
+                {{ form.email|add_class:"border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none" }}
+                {% if form.email.errors %}
+                    <p class="text-red-600 text-sm mt-1">{{ form.email.errors|striptags }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Password -->
+            <div class="flex flex-col">
+                {{ form.password1.label_tag }}
+                {{ form.password1|add_class:"border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none" }}
+                {% if form.password1.errors %}
+                    <p class="text-red-600 text-sm mt-1">{{ form.password1.errors|striptags }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Confirm Password -->
+            <div class="flex flex-col">
+                {{ form.password2.label_tag }}
+                {{ form.password2|add_class:"border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none" }}
+                {% if form.password2.errors %}
+                    <p class="text-red-600 text-sm mt-1">{{ form.password2.errors|striptags }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Submit -->
+            <div class="flex justify-end">
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-xl transition">
+                    Update Settings
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

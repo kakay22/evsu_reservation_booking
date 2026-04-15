@@ -1,0 +1,83 @@
+{% load socialaccount %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Create Account | EVSU Reserve</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<style>
+body { background: #f9fafb; }
+</style>
+</head>
+<body class="min-h-screen flex items-center justify-center px-4">
+
+<div class="w-full max-w-6xl bg-white rounded-2xl shadow-lg overflow-hidden grid md:grid-cols-2">
+
+    <!-- LEFT SIDE (Branding) -->
+    <div class="hidden md:flex flex-col justify-center bg-gradient-to-br from-gray-800 via-gray-900 to-gray-700 text-white p-12">
+        <h1 class="text-3xl font-semibold mb-4">EVSU Reserve</h1>
+        <p class="text-gray-300">Book facilities, manage reservations, and streamline approvals — all in one system.</p>
+        <div class="mt-10 space-y-4 text-sm text-gray-300">
+            <p>✔ <span class="text-blue-400 font-medium">Easy facility booking</span></p>
+            <p>✔ <span class="text-blue-400 font-medium">Real-time approval system</span></p>
+            <p>✔ <span class="text-blue-400 font-medium">Equipment management</span></p>
+        </div>
+    </div>
+
+    <!-- RIGHT SIDE (FORM) -->
+    <div class="p-8 md:p-12 bg-gray-50">
+        <h2 class="text-2xl font-semibold mb-2">Create your account</h2>
+        <p class="text-gray-500 mb-6">Get started with your reservation system</p>
+
+        {% if socialaccount_providers.google %}
+        <a href="{% provider_login_url 'google' %}" class="flex items-center justify-center gap-3 border rounded-xl py-3 hover:bg-gray-100 transition shadow-sm font-medium mb-6">
+            <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-5 h-5">
+            Continue with Google
+        </a>
+
+        <div class="flex items-center my-6">
+            <div class="flex-grow border-t border-gray-300"></div>
+            <span class="mx-3 text-gray-400 text-sm">or</span>
+            <div class="flex-grow border-t border-gray-300"></div>
+        </div>
+        {% endif %}
+
+        {% if messages %}
+            <div class="space-y-2 mb-4">
+                {% for message in messages %}
+                    <div class="p-3 border-l-4 border-red-500 bg-red-50 text-red-700 rounded shadow-sm text-sm">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <form method="POST">
+            {% csrf_token %}
+            {% for field in form %}
+                <div class="mb-4">
+                    <label class="block text-sm mb-1">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}
+                        {% for error in field.errors %}
+                            <p class="text-red-500 text-sm mt-1">{{ error }}</p>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            {% endfor %}
+
+            <button type="submit" class="w-full bg-black text-white py-3 rounded-xl hover:bg-gray-800 transition shadow">
+                Create Account
+            </button>
+        </form>
+
+        <p class="text-sm text-gray-500 mt-6 text-center">
+            Already have an account? 
+            <a href="{% url 'login' %}" class="text-black font-medium hover:underline">Login</a>
+        </p>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,242 @@
+{% extends 'admin/admin_base.html' %}
+{% block title %}Reservation Details{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+
+    <!-- HEADER -->
+    <div class="flex items-start justify-between">
+
+        <div>
+            <h2 class="text-2xl sm:text-3xl font-semibold text-gray-900 tracking-tight">
+                Reservation Details
+            </h2>
+            <p class="text-sm text-gray-500 mt-1">
+                Review and manage booking request
+            </p>
+        </div>
+
+        <a href="{% url 'admin_dashboard' %}"
+           class="px-4 py-2 text-sm rounded-lg bg-gray-900 text-white hover:bg-gray-800 transition">
+            ← Back
+        </a>
+
+    </div>
+
+    <!-- MAIN CARD -->
+    <div class="bg-white border rounded-2xl shadow-sm overflow-hidden">
+
+        <!-- TOP SECTION -->
+        <div class="p-6 border-b flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+
+            <!-- USER -->
+            <div class="flex items-center gap-3">
+
+                <div class="w-11 h-11 rounded-full bg-gray-100 flex items-center justify-center">
+                    <span class="material-icons text-gray-600">person</span>
+                </div>
+
+                <div>
+                    <p class="text-sm text-gray-500">Requested by</p>
+                    <h3 class="font-semibold text-gray-900">
+                        {{ reservation.user.username }}
+                    </h3>
+                    <p class="text-xs text-gray-400">
+                        {{ reservation.user.email }}
+                    </p>
+                </div>
+
+            </div>
+
+            <!-- STATUS -->
+            <div>
+                <span class="px-3 py-1 rounded-full text-xs font-medium
+                    {% if reservation.status == 'pending' %}bg-yellow-100 text-yellow-700
+                    {% elif reservation.status == 'approved' %}bg-green-100 text-green-700
+                    {% else %}bg-red-100 text-red-700{% endif %}">
+                    {{ reservation.status|capfirst }}
+                </span>
+            </div>
+
+        </div>
+
+        <!-- DETAILS GRID -->
+        <div class="p-6 grid grid-cols-1 sm:grid-cols-2 gap-5">
+
+            <!-- FACILITY -->
+            <div class="p-4 rounded-xl border bg-gray-50">
+                <p class="text-xs text-gray-500 flex items-center gap-1">
+                    <span class="material-icons text-sm">apartment</span>
+                    Facility
+                </p>
+                <p class="font-medium mt-1 text-gray-900">
+                    {{ reservation.facility.name }}
+                </p>
+            </div>
+
+            <!-- DATE -->
+            <div class="p-4 rounded-xl border bg-gray-50">
+                <p class="text-xs text-gray-500 flex items-center gap-1">
+                    <span class="material-icons text-sm">calendar_today</span>
+                    Date
+                </p>
+                <p class="font-medium mt-1 text-gray-900">
+                    {{ reservation.date|date:"M d, Y" }}
+                </p>
+            </div>
+
+            <!-- START -->
+            <div class="p-4 rounded-xl border bg-gray-50">
+                <p class="text-xs text-gray-500 flex items-center gap-1">
+                    <span class="material-icons text-sm">schedule</span>
+                    Start Time
+                </p>
+                <p class="font-medium mt-1 text-gray-900">
+                    {{ reservation.start_time|time:"h:i A" }}
+                </p>
+            </div>
+
+            <!-- END -->
+            <div class="p-4 rounded-xl border bg-gray-50">
+                <p class="text-xs text-gray-500 flex items-center gap-1">
+                    <span class="material-icons text-sm">schedule</span>
+                    End Time
+                </p>
+                <p class="font-medium mt-1 text-gray-900">
+                    {{ reservation.end_time|time:"h:i A" }}
+                </p>
+            </div>
+
+            <!-- PURPOSE -->
+            <div class="sm:col-span-2 p-4 rounded-xl border bg-gray-50">
+                <p class="text-xs text-gray-500 flex items-center gap-1">
+                    <span class="material-icons text-sm">notes</span>
+                    Purpose
+                </p>
+                <p class="font-medium mt-1 text-gray-900 leading-relaxed">
+                    {{ reservation.purpose|default:"No purpose provided" }}
+                </p>
+            </div>
+
+        </div>
+
+        <!-- EQUIPMENT SECTION -->
+        {% if reservation.equipments.all %}
+        <div class="px-6 pb-6 border-t">
+
+            <div class="flex items-center gap-2 mb-4 pt-4">
+                <span class="material-icons text-gray-600 text-sm">build</span>
+                <h3 class="text-sm font-semibold text-gray-700">
+                    Booked Equipment
+                </h3>
+            </div>
+
+            <div class="space-y-3">
+
+                {% for item in reservation.equipments.all %}
+
+                <div class="flex items-center justify-between bg-gray-50 border rounded-xl p-4">
+
+                    <!-- LEFT -->
+                    <div class="flex items-center gap-3">
+
+                        <div class="w-10 h-10 rounded-lg bg-white border flex items-center justify-center">
+                            <span class="material-icons text-gray-600 text-sm">inventory_2</span>
+                        </div>
+
+                        <div>
+                            <p class="font-medium text-gray-900">
+                                {{ item.equipment.name }}
+                            </p>
+                            <p class="text-xs text-gray-500">
+                                Available: {{ item.equipment.quantity }}
+                            </p>
+                        </div>
+
+                    </div>
+
+                    <!-- RIGHT -->
+                    <div class="text-right">
+                        <p class="text-sm font-semibold text-gray-900">
+                            × {{ item.quantity }}
+                        </p>
+                        <p class="text-xs text-gray-500">
+                            Reserved
+                        </p>
+                    </div>
+
+                </div>
+
+                {% endfor %}
+
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- ACTION BAR -->
+        <div class="p-6 border-t flex flex-col sm:flex-row gap-3 sm:justify-end">
+
+            {% if reservation.status == 'pending' %}
+
+                <button onclick="updateStatus('{{ reservation.id }}', 'approved', this)"
+                    class="px-5 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white text-sm font-medium transition">
+                    Approve
+                </button>
+
+                <button onclick="updateStatus('{{ reservation.id }}', 'rejected', this)"
+                    class="px-5 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm font-medium transition">
+                    Reject
+                </button>
+
+            {% endif %}
+
+            <a href="{% url 'admin_dashboard' %}"
+               class="px-5 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium transition text-center">
+                Cancel
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+function getCSRFToken() {
+    return document.cookie
+        .split('; ')
+        .find(row => row.startsWith('csrftoken'))
+        ?.split('=')[1];
+}
+
+function updateStatus(id, status, btn) {
+
+    const originalText = btn.innerText;
+    btn.disabled = true;
+    btn.innerText = "Processing...";
+
+    fetch(`/admin_reservations/${id}/status/`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCSRFToken()
+        },
+        body: JSON.stringify({ status: status })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert("Failed to update");
+        }
+    })
+    .catch(() => alert("Server error"))
+    .finally(() => {
+        btn.disabled = false;
+        btn.innerText = originalText;
+    });
+}
+</script>
+
+{% endblock %}
