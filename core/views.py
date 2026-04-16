@@ -25,6 +25,10 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
 
+from datetime import timedelta
+from django.db.models.functions import TruncMonth
+from django.db.models import Count
+from dateutil.relativedelta import relativedelta
 
 # ---------- HOME ----------
 def home(request):
@@ -332,20 +336,28 @@ def is_admin(user):
 @user_passes_test(is_admin)
 def admin_dashboard(request):
 
-    # GET FILTER
+    from django.db.models import Count
+    from django.db.models.functions import TruncMonth
+    from django.utils import timezone
+    from datetime import timedelta, datetime
+
+    # =========================
+    # 📌 FILTER (STATUS)
+    # =========================
     status = request.GET.get("status", "all")
 
-    # BASE QUERY
-    reservations = Reservation.objects.select_related('user', 'facility').order_by('-created_at')
+    reservations = Reservation.objects.select_related(
+        'user', 'facility'
+    ).order_by('-created_at')
 
-    # APPLY FILTER
     if status != "all":
         reservations = reservations.filter(status=status)
 
-    # LIMIT RESULTS
     reservations = reservations[:10]
 
-    # STATS
+    # =========================
+    # 📌 STATS
+    # =========================
     total_users = User.objects.filter(is_superuser=False).count()
     total_facilities = Facility.objects.count()
     total_reservations = Reservation.objects.count()
@@ -353,10 +365,78 @@ def admin_dashboard(request):
     approved_reservations = Reservation.objects.filter(status="approved").count()
     rejected_reservations = Reservation.objects.filter(status="rejected").count()
 
-    # FORMAT TIME SLOT
+    # =========================
+    # 📌 TIME SLOT FORMAT
+    # =========================
     for res in reservations:
         res.time_slot = f"{res.start_time.strftime('%I:%M %p')} - {res.end_time.strftime('%I:%M %p')}"
 
+    # =========================
+    # 📊 CHART TYPE
+    # =========================
+    chart_type = request.GET.get("chart", "weekly")
+
+    today = timezone.now().date()
+
+    chart_labels = []
+    chart_data = []
+
+    # =========================
+    # 📊 WEEKLY (7 days)
+    # =========================
+    if chart_type == "weekly":
+        days = [today - timedelta(days=i) for i in range(6, -1, -1)]
+
+        chart_labels = [d.strftime("%a") for d in days]
+        chart_data = [
+            Reservation.objects.filter(date=d).count()
+            for d in days
+        ]
+
+    # =========================
+    # 📊 MONTHLY (12 months)
+    # =========================
+    elif chart_type == "monthly":
+        from calendar import month_name
+        from django.db.models.functions import ExtractMonth
+    
+        # 📊 Get counts grouped by month (1–12)
+        monthly_counts = (
+            Reservation.objects
+            .annotate(month=ExtractMonth('created_at'))
+            .values('month')
+            .annotate(count=Count('id'))
+        )
+
+        # Map results: {1: 10, 2: 5, ...}
+        count_map = {item['month']: item['count'] for item in monthly_counts}
+
+        # 📊 FORCE JANUARY → DECEMBER ORDER
+        chart_labels = []
+        chart_data = []
+
+        for m in range(1, 13):
+            chart_labels.append(month_name[m])  # January, February...
+            chart_data.append(count_map.get(m, 0))
+
+    # =========================
+    # 📊 YEARLY (5 years)
+    # =========================
+    elif chart_type == "yearly":
+
+        current_year = today.year
+        years = [current_year - i for i in range(4, -1, -1)]
+
+        chart_labels = [str(y) for y in years]
+
+        chart_data = [
+            Reservation.objects.filter(created_at__year=y).count()
+            for y in years
+        ]
+
+    # =========================
+    # 📦 CONTEXT
+    # =========================
     context = {
         "total_users": total_users,
         "total_facilities": total_facilities,
@@ -365,7 +445,12 @@ def admin_dashboard(request):
         "approved_reservations": approved_reservations,
         "rejected_reservations": rejected_reservations,
         "recent_reservations": reservations,
-        "status_filter": status,   # IMPORTANT FOR TABS
+        "status_filter": status,
+
+        # 📊 CHART
+        "chart_labels": chart_labels,
+        "chart_data": chart_data,
+        "chart_type": chart_type,
     }
 
     return render(request, "admin/admin_dashboard.html", context)
@@ -413,8 +498,47 @@ def delete_user(request, user_id):
 @login_required
 @user_passes_test(is_admin)
 def admin_facilities(request):
-    facilities = Facility.objects.all()
-    return render(request, "admin/admin_facilities.html", {"facilities": facilities})
+
+    # =====================
+    # CREATE FACILITY
+    # =====================
+    if request.method == "POST":
+
+        facility_id = request.POST.get("facility_id")
+
+        if facility_id:
+            facility = get_object_or_404(Facility, id=facility_id)
+        else:
+            facility = Facility()
+
+        facility.name = request.POST.get("name")
+        facility.description = request.POST.get("description")
+        facility.location = request.POST.get("location")
+        facility.capacity = request.POST.get("capacity") or None
+        facility.is_active = True if request.POST.get("is_active") == "on" else False
+
+        if request.FILES.get("image"):
+            facility.image = request.FILES.get("image")
+
+        facility.save()
+
+        return redirect("admin_facilities")
+
+    facilities = Facility.objects.all().order_by("-id")
+
+    return render(request, "admin/admin_facilities.html", {
+        "facilities": facilities
+    })
+
+# =========================
+# DELETE
+# =========================
+@login_required
+@user_passes_test(is_admin)
+def delete_facility(request, id):
+    facility = get_object_or_404(Facility, id=id)
+    facility.delete()
+    return redirect("admin_facilities")
 
 # ---------- RESERVATIONS MANAGEMENT ----------
 @login_required
@@ -508,17 +632,6 @@ def get_notifications(request):
 
 @login_required
 def mark_notification_as_read(request, id):
-    if request.method == "POST":
-        notif = get_object_or_404(Notification, id=id, user=request.user)
-        notif.is_read = True
-        notif.save()
-
-        return JsonResponse({"success": True})
-
-    return JsonResponse({"success": False}, status=400)
-
-@login_required
-def mark_single_notification_read(request, id):
     if request.method == "POST":
         notif = get_object_or_404(Notification, id=id, user=request.user)
         notif.is_read = True

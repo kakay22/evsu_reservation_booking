@@ -52,7 +52,14 @@ class Facility(models.Model):
     description = models.TextField(blank=True)
     location = models.CharField(max_length=100, blank=True)
     capacity = models.PositiveIntegerField(null=True, blank=True)
-    image = models.ImageField(upload_to='facilities/', blank=True, null=True)
+
+    image = models.ImageField(
+        upload_to='facilities/',
+        blank=True,
+        null=True,
+        default='images/default.jpg'   # ✅ ADD THIS
+    )
+
     is_active = models.BooleanField(default=True)
 
     def __str__(self):

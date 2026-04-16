@@ -3,6 +3,10 @@
 {% block title %}Admin Dashboard{% endblock %}
 
 {% block content %}
+
+<!-- chartjs -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
 
     <!-- HEADER -->
@@ -38,26 +42,63 @@
 
     </div>
 
+    <!-- 📊 CHART FILTER TABS -->
+    <div class="flex gap-2 mb-4">
+
+        <button onclick="changeChart('weekly')" class="chart-tab px-3 py-1 text-sm rounded-lg border
+                {% if chart_type == 'weekly' %}bg-gray-900 text-white{% endif %}">
+            Weekly
+        </button>
+
+        <button onclick="changeChart('monthly')" class="chart-tab px-3 py-1 text-sm rounded-lg border
+                {% if chart_type == 'monthly' %}bg-gray-900 text-white{% endif %}">
+
+            Monthly
+        </button>
+
+        <button onclick="changeChart('yearly')" class="chart-tab px-3 py-1 text-sm rounded-lg border
+                {% if chart_type == 'yearly' %}bg-gray-900 text-white{% endif %}">
+            Yearly
+        </button>
+
+    </div>
+
+    <!-- 📊 ANALYTICS GRAPH -->
+    <div class="bg-white rounded-2xl shadow-sm p-4 sm:p-6">
+
+        <div class="flex items-center justify-between mb-4">
+            <div>
+                <h3 class="text-lg font-semibold">Reservation Trends</h3>
+                <p class="text-xs text-gray-500">Overview of activity</p>
+            </div>
+        </div>
+
+        <div class="w-full h-[250px] sm:h-[300px]">
+            <canvas id="reservationChart"></canvas>
+        </div>
+
+    </div>
+
     <!-- FILTER TABS -->
     <div class="flex gap-2 flex-wrap">
 
         <a href="?status=all"
-           class="px-3 py-1 rounded-lg text-sm border {% if status_filter == 'all' %}bg-gray-900 text-white{% else %}bg-white{% endif %}">
+            class="px-3 py-1 rounded-lg text-sm border {% if status_filter == 'all' %}bg-gray-900 text-white{% else %}bg-white{% endif %}">
             All
         </a>
 
         <a href="?status=pending"
-           class="px-3 py-1 rounded-lg text-sm border {% if status_filter == 'pending' %}bg-yellow-500 text-white{% else %}bg-white{% endif %}">
+            class="px-3 py-1 rounded-lg text-sm border {% if status_filter == 'pending' %}bg-yellow-500 text-white{% else %}bg-white{% endif %}">
             Pending
         </a>
 
         <a href="?status=approved"
-           class="px-3 py-1 rounded-lg text-sm border {% if status_filter == 'approved' %}bg-green-600 text-white{% else %}bg-white{% endif %}">
+            class="px-3 py-1 rounded-lg text-sm border {% if status_filter == 'approved' %}bg-green-600 text-white{% else %}bg-white{% endif %}">
             Approved
         </a>
 
         <a href="?status=rejected"
-           class="px-3 py-1 rounded-lg text-sm border {% if status_filter == 'rejected' %}bg-red-600 text-white{% else %}bg-white{% endif %}">
+            class="px-3 py-1 rounded-lg text-sm border {% if status_filter == 'rejected' %}bg-red-600 text-white{% else %}bg-white{% endif %}">
             Rejected
         </a>
 
@@ -98,22 +139,20 @@
 
                     {% if res.status == 'pending' %}
 
-                        <a href=""
-                           class="flex-1 text-center bg-green-600 text-white py-2 rounded-lg text-sm">
-                            Approve
-                        </a>
+                    <a href="" class="flex-1 text-center bg-green-600 text-white py-2 rounded-lg text-sm">
+                        Approve
+                    </a>
 
-                        <a href=""
-                           class="flex-1 text-center bg-red-600 text-white py-2 rounded-lg text-sm">
-                            Reject
-                        </a>
+                    <a href="" class="flex-1 text-center bg-red-600 text-white py-2 rounded-lg text-sm">
+                        Reject
+                    </a>
 
                     {% else %}
 
-                        <a href="{% url 'admin_booking_detail' res.id %}"
-                           class="w-full text-center bg-gray-900 text-white py-2 rounded-lg text-sm">
-                            View
-                        </a>
+                    <a href="{% url 'admin_booking_detail' res.id %}"
+                        class="w-full text-center bg-gray-900 text-white py-2 rounded-lg text-sm">
+                        View
+                    </a>
 
                     {% endif %}
 
@@ -167,30 +206,30 @@
 
                             {% if res.status == 'pending' %}
 
+                            <div class="flex gap-2">
+
                                 <div class="flex gap-2">
 
-                                    <div class="flex gap-2">
+                                    <button onclick="updateStatus('{{ res.id }}', 'approved', this)"
+                                        class="bg-green-600 text-white px-3 py-1 rounded text-xs">
+                                        Approve
+                                    </button>
 
-                                        <button onclick="updateStatus('{{ res.id }}', 'approved', this)"
-                                            class="bg-green-600 text-white px-3 py-1 rounded text-xs">
-                                            Approve
-                                        </button>
-
-                                        <button onclick="updateStatus('{{ res.id }}', 'rejected', this)"
-                                            class="bg-red-600 text-white px-3 py-1 rounded text-xs">
-                                            Reject
-                                        </button>
-
-                                    </div>
+                                    <button onclick="updateStatus('{{ res.id }}', 'rejected', this)"
+                                        class="bg-red-600 text-white px-3 py-1 rounded text-xs">
+                                        Reject
+                                    </button>
 
                                 </div>
 
+                            </div>
+
                             {% else %}
 
-                                <a href="{% url 'admin_booking_detail' res.id %}"
-                                   class="bg-gray-900 text-white px-3 py-1 rounded text-xs">
-                                    View
-                                </a>
+                            <a href="{% url 'admin_booking_detail' res.id %}"
+                                class="bg-gray-900 text-white px-3 py-1 rounded text-xs">
+                                View
+                            </a>
 
                             {% endif %}
 
@@ -216,46 +255,160 @@
 </div>
 <script>
     function getCSRFToken() {
-    return document.cookie
-        .split('; ')
-        .find(row => row.startsWith('csrftoken'))
-        ?.split('=')[1];
-}
+        return document.cookie
+            .split('; ')
+            .find(row => row.startsWith('csrftoken'))
+            ?.split('=')[1];
+    }
 
-function updateStatus(id, status, btn) {
+    function updateStatus(id, status, btn) {
 
-    // loading state
-    const originalText = btn.innerText;
-    btn.disabled = true;
-    btn.innerText = "Loading...";
+        // loading state
+        const originalText = btn.innerText;
+        btn.disabled = true;
+        btn.innerText = "Loading...";
 
-    fetch(`/admin_reservations/${id}/status/`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": getCSRFToken()
+        fetch(`/admin_reservations/${id}/status/`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": getCSRFToken()
+            },
+            body: JSON.stringify({ status: status })
+        })
+            .then(res => res.json())
+            .then(data => {
+
+                if (data.success) {
+                    showToast("Status updated successfully");
+                    location.reload(); // or re-render UI later
+                } else {
+                    showToast("Failed to update status");
+                }
+
+            })
+            .catch(err => {
+                console.error(err);
+                showToast("Server error");
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerText = originalText;
+            });
+    }
+</script>
+
+{{ chart_labels|json_script:"chart-labels" }}
+{{ chart_data|json_script:"chart-data" }}
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const ctx = document.getElementById('reservationChart');
+    const labelsEl = document.getElementById('chart-labels');
+    const dataEl = document.getElementById('chart-data');
+
+    // 🚨 SAFETY CHECK (prevents your previous error)
+    if (!ctx || !labelsEl || !dataEl) return;
+
+    // ✅ PARSE DATA SAFELY
+    const labels = JSON.parse(labelsEl.textContent);
+    const data = JSON.parse(dataEl.textContent);
+
+    // 🎯 CREATE CHART INSTANCE
+    const chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Reservations',
+                data: data,
+
+                // 💎 PREMIUM LOOK
+                tension: 0.45,
+                fill: true,
+                borderWidth: 2,
+                pointRadius: 4,
+                pointHoverRadius: 6,
+
+                // smooth line animation
+                cubicInterpolationMode: 'monotone'
+            }]
         },
-        body: JSON.stringify({ status: status })
-    })
-    .then(res => res.json())
-    .then(data => {
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
 
-        if (data.success) {
-            showToast("Status updated successfully");
-            location.reload(); // or re-render UI later
-        } else {
-            showToast("Failed to update status");
+            animation: {
+                duration: 900,
+                easing: 'easeOutQuart'
+            },
+
+            plugins: {
+                legend: {
+                    display: false
+                },
+
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                }
+            },
+
+            interaction: {
+                mode: 'nearest',
+                axis: 'x',
+                intersect: false
+            },
+
+            scales: {
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        color: "#6B7280"
+                    }
+                },
+                y: {
+                    grid: {
+                        color: 'rgba(0,0,0,0.05)'
+                    },
+                    ticks: {
+                        stepSize: 1,
+                        color: "#6B7280"
+                    }
+                }
+            }
         }
-
-    })
-    .catch(err => {
-        console.error(err);
-        showToast("Server error");
-    })
-    .finally(() => {
-        btn.disabled = false;
-        btn.innerText = originalText;
     });
+
+    // 🚀 OPTIONAL: expose chart globally (for future updates without reload)
+    window.reservationChart = chart;
+
+});
+</script>
+<script>
+function changeChart(type) {
+    window.location.href = `?chart=${type}`;
 }
+</script>
+
+<!-- scroll position memory -->
+<script>
+    // 💾 Save scroll position before reload
+    window.addEventListener("beforeunload", function () {
+        localStorage.setItem("scrollPos", window.scrollY);
+    });
+
+    // 📌 Restore scroll position after reload
+    window.addEventListener("load", function () {
+        const scrollPos = localStorage.getItem("scrollPos");
+
+        if (scrollPos !== null) {
+            window.scrollTo(0, parseInt(scrollPos));
+            localStorage.removeItem("scrollPos");
+        }
+    });
 </script>
 {% endblock %}

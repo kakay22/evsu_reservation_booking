@@ -90,6 +90,9 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static')
 ]
 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
 WSGI_APPLICATION = 'BOOKING.wsgi.application'
 
 AUTH_USER_MODEL = 'core.User'

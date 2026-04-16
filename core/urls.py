@@ -14,6 +14,7 @@ urlpatterns = [
 
     path('admin_dashboard/', views.admin_dashboard, name='admin_dashboard'),
     path('admin_facilities/', views.admin_facilities, name='admin_facilities'),
+    path('admin/facility/delete/<int:id>/', views.delete_facility, name='delete_facility'),
     path('admin_users/', views.admin_users, name='admin_users'),
     path("users/edit/<int:user_id>/", views.edit_user, name="edit_user"),
     path("users/delete/<int:user_id>/", views.delete_user, name="delete_user"),
@@ -23,7 +24,7 @@ urlpatterns = [
 
     path('notifications/', views.get_notifications, name='get_notifications'),
     path('notifications/<int:id>/read/', views.mark_notification_as_read, name='mark_notification_as_read'),
-    path('notifications/<int:id>/read/', views.mark_single_notification_read, name='mark_single_notification_read'),
+    # path('notifications/<int:id>/read/', views.mark_single_notification_read, name='mark_single_notification_read'),
 
     path('logout/', views.logout_view, name='logout'),
 ]
