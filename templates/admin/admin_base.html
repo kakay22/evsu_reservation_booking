@@ -134,28 +134,65 @@
 
 <body class="font-sans text-gray-800 flex">
 
-    <div id="toast" class="fixed bottom-5 right-5 hidden px-4 py-2 rounded-lg text-white shadow-lg z-50"></div>
+    <div id="toast" class="fixed bottom-5 right-5 px-4 py-2 pr-10 rounded-lg text-white shadow-lg z-50
+     opacity-0 translate-y-3 pointer-events-none transition-all duration-300">
+
+        <span id="toastMessage"></span>
+
+        <!-- X button -->
+        <button onclick="closeToast()"
+            class="absolute top-1 right-2 text-white/80 hover:text-white text-lg leading-none">
+            &times;
+        </button>
+    </div>
+
+    {% if messages %}
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            {% for message in messages %}
+            showToast("{{ message|escapejs }}",
+                "{% if message.tags == 'success' %}success{% else %}error{% endif %}");
+            {% endfor %}
+        });
+    </script>
+    {% endif %}
 
     <script>
         function showToast(message, type = "success") {
-            const toast = document.getElementById('toast');
-            toast.innerText = message;
+            const toast = document.getElementById("toast");
+            const msg = document.getElementById("toastMessage");
 
-            toast.className = `fixed bottom-5 right-5 px-4 py-2 rounded-lg text-white shadow-lg z-50 ${type === "success" ? "bg-green-600" : "bg-red-600"
-                }`;
+            if (!toast || !msg) return;
 
-            toast.classList.remove('hidden');
+            const isSuccess = type === "success";
 
-            setTimeout(() => {
-                toast.classList.add('hidden');
-            }, 2500);
+            msg.textContent = message;
+
+            toast.className =
+                "fixed bottom-5 right-5 px-4 py-2 pr-10 rounded-lg text-white shadow-lg z-50 transition-all duration-300 " +
+                (isSuccess ? "bg-green-600" : "bg-red-600");
+
+            toast.classList.remove("opacity-0", "translate-y-3", "pointer-events-none");
+            toast.classList.add("opacity-100", "translate-y-0");
+
+            clearTimeout(window.toastTimeout);
+            window.toastTimeout = setTimeout(closeToast, 2500);
+        }
+
+        function closeToast() {
+            const toast = document.getElementById("toast");
+            if (!toast) return;
+
+            toast.classList.add("opacity-0", "translate-y-3", "pointer-events-none");
         }
 
         function setLoading(btn, isLoading) {
+            if (!btn) return;
+
             if (isLoading) {
                 btn.disabled = true;
                 btn.dataset.original = btn.innerHTML;
-                btn.innerHTML = "⏳";
+                btn.innerHTML = "⏳ Loading...";
             } else {
                 btn.disabled = false;
                 btn.innerHTML = btn.dataset.original;
@@ -199,6 +236,12 @@
                     class="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-gray-100 {% if request.resolver_match.url_name == 'admin_facilities' %}active{% endif %}">
                     <span class="material-icons">meeting_room</span>
                     Facilities
+                </a>
+
+                <a href="{% url 'admin_equipments' %}"
+                    class="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-gray-100 {% if request.resolver_match.url_name == 'admin_equipments' %}active{% endif %}">
+                    <span class="material-icons">inventory_2</span>
+                    Equipments
                 </a>
 
                 <a href="{% url 'admin_settings' %}"
@@ -322,32 +365,74 @@
 
     <!-- ---------- MOBILE NAV ---------- -->
     <div id="mobileNav" class="md:hidden mobile-nav">
+
         <a href="{% url 'admin_dashboard' %}"
             class="{% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
             <span class="material-icons text-lg">dashboard</span>
             <span>Dashboard</span>
         </a>
+
         <a href="{% url 'admin_reservations' %}"
             class="{% if request.resolver_match.url_name == 'admin_reservations' %}active{% endif %}">
             <span class="material-icons text-lg">event</span>
             <span>Reserve</span>
         </a>
+
         <a href="{% url 'admin_users' %}"
             class="{% if request.resolver_match.url_name == 'admin_users' %}active{% endif %}">
             <span class="material-icons text-lg">people</span>
             <span>Users</span>
         </a>
+
         <a href="{% url 'admin_facilities' %}"
             class="{% if request.resolver_match.url_name == 'admin_facilities' %}active{% endif %}">
             <span class="material-icons text-lg">meeting_room</span>
             <span>Facilities</span>
         </a>
 
-        <a href="#" onclick="openModal()" class="text-red-500 flex flex-col items-center">
-            <span class="material-icons text-lg">logout</span>
-            <span>Logout</span>
+        <a href="{% url 'admin_equipments' %}"
+            class="{% if request.resolver_match.url_name == 'admin_equipments' %}active{% endif %}">
+            <span class="material-icons text-lg">inventory_2</span>
+            <span>Equipments</span>
         </a>
+
+        <!-- MORE BUTTON -->
+        <a onclick="toggleMoreMenu()"
+            class="flex flex-col items-center justify-center gap-0 text-gray-600 text-xs cursor-pointer">
+            <span class="material-icons text-lg">more_horiz</span>
+            <span>More</span>
+        </a>
+
     </div>
+
+    <!-- ✅ FLOATING DROPDOWN (OUTSIDE NAV) -->
+    <div id="moreMenu" class="hidden fixed bottom-20 right-4 bg-white shadow-xl rounded-xl w-44 py-2 z-50">
+
+        <a href="{% url 'admin_settings' %}" class="flex items-center gap-2 px-4 py-2 hover:bg-gray-100">
+            <span class="material-icons text-sm">settings</span>
+            Settings
+        </a>
+
+        <button onclick="openModal()" class="w-full flex items-center gap-2 px-4 py-2 text-red-500 hover:bg-gray-100">
+            <span class="material-icons text-sm">logout</span>
+            Logout
+        </button>
+
+    </div>
+
+    <script>
+        function toggleMoreMenu() {
+            const menu = document.getElementById("moreMenu");
+            menu.classList.toggle("hidden");
+        }
+
+        document.addEventListener("click", function (e) {
+            const menu = document.getElementById("moreMenu");
+            if (!e.target.closest("#mobileNav") && !e.target.closest("#moreMenu")) {
+                menu.classList.add("hidden");
+            }
+        });
+    </script>
 
     <!-- ---------- LOGOUT MODAL (ADDED) ---------- -->
     <div id="logoutModal" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50">
@@ -621,7 +706,7 @@
             return cookieValue;
         }
     </script>
-    
+
     <!-- Bootstrap JS (must be before closing body tag) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>

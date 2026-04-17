@@ -540,6 +540,62 @@ def delete_facility(request, id):
     facility.delete()
     return redirect("admin_facilities")
 
+#equipment management
+@login_required
+@user_passes_test(is_admin)
+def admin_equipments(request):
+    equipments = Equipment.objects.all().order_by('-id')
+
+    if request.method == "POST":
+        equipment_id = request.POST.get("equipment_id")
+
+        name = request.POST.get("name")
+        category = request.POST.get("category")
+        quantity = request.POST.get("quantity") or 1
+        description = request.POST.get("description")
+        is_active = request.POST.get("is_active") == "on"
+        image = request.FILES.get("image")
+
+        if equipment_id:
+            # UPDATE
+            equipment = Equipment.objects.get(id=equipment_id)
+            equipment.name = name
+            equipment.category = category
+            equipment.quantity = quantity
+            equipment.description = description
+            equipment.is_active = is_active
+
+            if image:
+                equipment.image = image
+
+            equipment.save()
+
+        else:
+            # CREATE
+            Equipment.objects.create(
+                name=name,
+                category=category,
+                quantity=quantity,
+                description=description,
+                is_active=is_active,
+                image=image
+            )
+
+        return redirect('admin_equipments')
+
+    return render(request, 'admin/admin_equipments.html', {
+        'equipments': equipments
+    })
+
+
+def delete_equipment(request, id):
+    equipment = get_object_or_404(Equipment, id=id)
+
+    if request.method == "POST":
+        equipment.delete()
+        messages.success(request, "Equipment deleted successfully!")
+        return redirect('admin_equipments')
+
 # ---------- RESERVATIONS MANAGEMENT ----------
 @login_required
 @user_passes_test(is_admin)

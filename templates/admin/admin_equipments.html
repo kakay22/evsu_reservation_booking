@@ -1,0 +1,295 @@
+{% extends 'admin/admin_base.html' %}
+{% block title %}Equipment Management{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-full sm:max-w-2xl md:max-w-5xl lg:max-w-6xl mx-auto px-3 sm:px-5 py-5 space-y-6">
+
+    <!-- HEADER -->
+    <div class="flex flex-col gap-3 md:flex-row md:justify-between md:items-center">
+        <div>
+            <h2 class="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">Equipments</h2>
+            <p class="text-gray-600 text-sm">Manage all equipments</p>
+        </div>
+
+        <button
+            data-bs-toggle="modal"
+            data-bs-target="#equipmentModal"
+            onclick="openCreateModal()"
+            class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg">
+            + Add Equipment
+        </button>
+    </div>
+
+    <!-- ================= MOBILE CARDS ================= -->
+    <div class="space-y-3 md:hidden">
+        {% for equipment in equipments %}
+        <div class="bg-white shadow rounded-xl p-3 space-y-2">
+
+            <div class="flex items-center gap-3">
+                <img src="{% if equipment.image %}{{ equipment.image.url }}{% else %}https://images.unsplash.com/photo-1581092335397-9583eb92d232{% endif %}"
+                     class="w-12 h-12 rounded-lg object-cover">
+
+                <div class="flex-1">
+                    <p class="font-semibold text-gray-900 text-sm">{{ equipment.name }}</p>
+                    <p class="text-xs text-gray-500 truncate">
+                        {{ equipment.description|default:"No description" }}
+                    </p>
+                </div>
+            </div>
+
+            <div class="text-xs text-gray-600">
+                <p><strong>Category:</strong> {{ equipment.category|default:"N/A" }}</p>
+                <p><strong>Quantity:</strong> {{ equipment.quantity }}</p>
+            </div>
+
+            <div class="flex justify-between items-center">
+
+                <span class="text-xs px-2 py-1 rounded-full
+                    {% if equipment.is_active %}
+                        bg-green-100 text-green-700
+                    {% else %}
+                        bg-red-100 text-red-700
+                    {% endif %}">
+                    {% if equipment.is_active %}Active{% else %}Inactive{% endif %}
+                </span>
+
+                <div class="flex gap-3 text-xs">
+                    <button data-bs-toggle="modal" data-bs-target="#equipmentModal"
+                        onclick="openEditModal('{{ equipment.id }}','{{ equipment.name|escapejs }}','{{ equipment.category|escapejs }}','{{ equipment.quantity }}','{{ equipment.description|escapejs }}','{{ equipment.is_active }}')"
+                        class="text-blue-600">
+                        Edit
+                    </button>
+
+                    <button data-bs-toggle="modal" data-bs-target="#deleteModal"
+                        onclick="openDeleteModal('{{ equipment.id }}')"
+                        class="text-red-600">
+                        Delete
+                    </button>
+                </div>
+
+            </div>
+
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- ================= DESKTOP TABLE ================= -->
+    <div class="hidden md:block bg-white shadow rounded-2xl overflow-hidden">
+
+        <table class="w-full text-sm">
+
+            <thead class="bg-gray-50 text-xs uppercase text-gray-500">
+                <tr>
+                    <th class="px-6 py-3 text-left">#</th>
+                    <th class="px-6 py-3 text-left">Equipment</th>
+                    <th class="px-6 py-3 text-left">Category</th>
+                    <th class="px-6 py-3 text-left">Quantity</th>
+                    <th class="px-6 py-3 text-left">Status</th>
+                    <th class="px-6 py-3 text-right">Actions</th>
+                </tr>
+            </thead>
+
+            <tbody class="divide-y">
+                {% for equipment in equipments %}
+                <tr class="hover:bg-gray-50">
+
+                    <td class="px-6 py-4 text-gray-500">{{ forloop.counter }}</td>
+
+                    <td class="px-6 py-4">
+                        <div class="flex items-center gap-3">
+                            <img src="{% if equipment.image %}{{ equipment.image.url }}{% else %}https://images.unsplash.com/photo-1581092335397-9583eb92d232{% endif %}"
+                                 class="w-10 h-10 rounded-lg object-cover">
+
+                            <div>
+                                <p class="font-medium">{{ equipment.name }}</p>
+                                <p class="text-xs text-gray-500 truncate max-w-[200px]">
+                                    {{ equipment.description|default:"No description" }}
+                                </p>
+                            </div>
+                        </div>
+                    </td>
+
+                    <td class="px-6 py-4 text-gray-600">{{ equipment.category|default:"N/A" }}</td>
+                    <td class="px-6 py-4 text-gray-600">{{ equipment.quantity }}</td>
+
+                    <td class="px-6 py-4">
+                        {% if equipment.is_active %}
+                        <span class="bg-green-100 text-green-700 px-2 py-1 text-xs rounded-full">Active</span>
+                        {% else %}
+                        <span class="bg-red-100 text-red-700 px-2 py-1 text-xs rounded-full">Inactive</span>
+                        {% endif %}
+                    </td>
+
+                    <td class="px-6 py-4 text-right">
+                        <button data-bs-toggle="modal" data-bs-target="#equipmentModal"
+                            onclick="openEditModal('{{ equipment.id }}','{{ equipment.name|escapejs }}','{{ equipment.category|escapejs }}','{{ equipment.quantity }}','{{ equipment.description|escapejs }}','{{ equipment.is_active }}')"
+                            class="text-blue-600 mr-3">
+                            Edit
+                        </button>
+
+                        <button data-bs-toggle="modal" data-bs-target="#deleteModal"
+                            onclick="openDeleteModal('{{ equipment.id }}')"
+                            class="text-red-600">
+                            Delete
+                        </button>
+                    </td>
+
+                </tr>
+                {% endfor %}
+            </tbody>
+
+        </table>
+    </div>
+
+</div>
+
+<!-- ================= EQUIPMENT MODAL ================= -->
+<div class="modal fade" id="equipmentModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content rounded-2xl p-4">
+
+            <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
+
+            <h2 id="modalTitle" class="text-lg font-semibold mb-4"></h2>
+
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" name="equipment_id" id="equipment_id">
+
+                <div class="grid gap-3">
+
+                    <div>
+                        <label class="text-sm text-gray-600">Equipment Name</label>
+                        <input name="name" id="name" class="w-full border p-2 rounded-lg mt-1">
+                    </div>
+
+                    <div>
+                        <label class="text-sm text-gray-600">Category</label>
+                        <input name="category" id="category" class="w-full border p-2 rounded-lg mt-1">
+                    </div>
+
+                    <div>
+                        <label class="text-sm text-gray-600">Quantity</label>
+                        <input name="quantity" id="quantity" type="number" class="w-full border p-2 rounded-lg mt-1">
+                    </div>
+
+                    <div>
+                        <label class="text-sm text-gray-600">Description</label>
+                        <textarea name="description" id="description" class="w-full border p-2 rounded-lg mt-1"></textarea>
+                    </div>
+
+                    <div>
+                        <label class="text-sm text-gray-600">Image</label>
+
+                        <div id="dropZone" class="border-2 border-dashed p-4 text-center rounded-lg cursor-pointer mt-1">
+                            <p class="text-xs text-gray-500">Click or drag image</p>
+                            <input type="file" name="image" id="imageInput" hidden>
+
+                            <div class="mt-3 relative inline-block">
+                                <img id="preview" class="w-24 h-24 rounded-lg hidden">
+                                <button type="button" onclick="removeImage()"
+                                    id="removeImgBtn"
+                                    class="hidden absolute -top-2 -right-2 bg-red-600 text-white w-6 h-6 rounded-full text-xs">
+                                    ✕
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <label class="flex items-center gap-2 text-sm">
+                        <input type="checkbox" name="is_active" id="is_active"> Active
+                    </label>
+
+                </div>
+
+                <div class="flex justify-end gap-2 mt-4">
+                    <button type="button" data-bs-dismiss="modal" class="px-4 py-2 border rounded-lg">Cancel</button>
+                    <button class="px-4 py-2 bg-blue-600 text-white rounded-lg">Save</button>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+</div>
+
+<!-- ================= DELETE MODAL ================= -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content p-4 text-center rounded-xl">
+
+            <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
+
+            <p class="text-lg font-semibold">Delete this equipment?</p>
+
+            <form method="POST" id="deleteForm">
+                {% csrf_token %}
+                <button class="bg-red-600 text-white px-4 py-2 mt-4 rounded-lg w-full">
+                    Yes, Delete
+                </button>
+            </form>
+
+            <button class="mt-2 text-gray-500" data-bs-dismiss="modal">Cancel</button>
+
+        </div>
+    </div>
+</div>
+
+<script>
+function openCreateModal(){
+    resetForm();
+    document.getElementById("modalTitle").innerText="Create Equipment";
+}
+
+function openEditModal(id,name,category,quantity,desc,is_active){
+    resetForm();
+    document.getElementById("modalTitle").innerText="Edit Equipment";
+    document.getElementById("equipment_id").value=id;
+    document.getElementById("name").value=name;
+    document.getElementById("category").value=category;
+    document.getElementById("quantity").value=quantity;
+    document.getElementById("description").value=desc;
+    document.getElementById("is_active").checked=(is_active==="True");
+}
+
+function openDeleteModal(id){
+    document.getElementById("deleteForm").action=`/admin_equipment/delete/${id}/`;
+}
+
+/* IMAGE (same as facilities) */
+const input=document.getElementById("imageInput");
+const preview=document.getElementById("preview");
+const removeBtn=document.getElementById("removeImgBtn");
+const dropZone=document.getElementById("dropZone");
+
+dropZone.onclick=()=>input.click();
+input.onchange=e=>showPreview(e.target.files[0]);
+
+function showPreview(file){
+    const reader=new FileReader();
+    reader.onload=e=>{
+        preview.src=e.target.result;
+        preview.classList.remove("hidden");
+        removeBtn.classList.remove("hidden");
+    };
+    reader.readAsDataURL(file);
+}
+
+function removeImage(){
+    input.value="";
+    preview.classList.add("hidden");
+    removeBtn.classList.add("hidden");
+}
+
+function resetForm(){
+    document.getElementById("equipment_id").value="";
+    document.getElementById("name").value="";
+    document.getElementById("category").value="";
+    document.getElementById("quantity").value="";
+    document.getElementById("description").value="";
+    document.getElementById("is_active").checked=false;
+    removeImage();
+}
+</script>
+
+{% endblock %}
