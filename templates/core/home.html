@@ -151,64 +151,105 @@
     </section>
 
     <!-- FACILITIES -->
-    <section class="py-16 md:py-20 px-6 md:px-10">
-        <div class="max-w-6xl mx-auto text-center">
-            <h3 class="text-2xl md:text-3xl font-semibold mb-12">Available Facilities</h3>
+    <section class="py-20 px-6 md:px-10 bg-white">
+        <div class="max-w-7xl mx-auto">
 
-            <div class="grid sm:grid-cols-2 md:grid-cols-3 gap-6 md:gap-8">
+            <div class="text-center mb-14">
+                <h3 class="text-3xl md:text-4xl font-semibold text-gray-900">
+                    Available Facilities
+                </h3>
+                <p class="text-gray-500 mt-3">
+                    Book premium spaces for your events and activities
+                </p>
+            </div>
 
-                <div class="bg-white p-6 rounded-2xl shadow-sm hover:shadow-lg transition hover:-translate-y-2">
-                    <span class="material-icons text-4xl mb-4">meeting_room</span>
-                    <h4 class="font-semibold text-lg">Function Rooms</h4>
-                    <p class="text-gray-500">GS Function Room, ORDEX</p>
+            <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+
+                {% for f in facilities %}
+                <div class="group bg-white rounded-2xl overflow-hidden border shadow-sm hover:shadow-xl transition">
+
+                    <!-- IMAGE -->
+                    <div class="h-52 overflow-hidden relative bg-gray-100">
+
+                        {% if f.image %}
+                        <img src="{{ f.image.url }}"
+                            class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
+                        {% endif %}
+
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+
+                        {% if f.capacity %}
+                        <div class="absolute bottom-3 right-3 bg-white/90 px-2 py-1 rounded text-xs">
+                            👥 {{ f.capacity }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- CONTENT -->
+                    <div class="p-5 flex flex-col">
+
+                        <h4 class="font-semibold text-lg">{{ f.name }}</h4>
+
+                        <p class="text-sm text-gray-500 mt-1">
+                            {{ f.description|default:"No description available." }}
+                        </p>
+
+                        <div class="text-xs text-gray-400 mt-2">
+                            📍 {{ f.location|default:"EVSU Campus" }}
+                        </div>
+
+                        <!-- BUTTON (FIXED ALWAYS VISIBLE) -->
+                        <a href="{% url 'facility_public_view' f.id %}" class="mt-4 flex items-center justify-center gap-2
+                              bg-gray-900 text-white py-2.5 rounded-xl
+                              hover:bg-black transition text-sm font-medium">
+
+                            <span class="material-icons text-[18px]">calendar_month</span>
+                            View Availability
+                        </a>
+
+                    </div>
                 </div>
-
-                <div class="bg-white p-6 rounded-2xl shadow-sm hover:shadow-lg transition hover:-translate-y-2">
-                    <span class="material-icons text-4xl mb-4">school</span>
-                    <h4 class="font-semibold text-lg">Academic Rooms</h4>
-                    <p class="text-gray-500">EB 208, AVR, Inner Court</p>
-                </div>
-
-                <div class="bg-white p-6 rounded-2xl shadow-sm hover:shadow-lg transition hover:-translate-y-2">
-                    <span class="material-icons text-4xl mb-4">theater_comedy</span>
-                    <h4 class="font-semibold text-lg">Auditorium</h4>
-                    <p class="text-gray-500">For large events</p>
-                </div>
+                {% empty %}
+                <p class="text-gray-400 col-span-full text-center">No facilities available.</p>
+                {% endfor %}
 
             </div>
         </div>
     </section>
 
     <!-- EQUIPMENT -->
-    <section class="bg-gray-50 py-16 md:py-20 px-6 md:px-10">
-        <div class="max-w-6xl mx-auto text-center">
-            <h3 class="text-2xl md:text-3xl font-semibold mb-12">Equipment Available</h3>
+    <section class="bg-gray-50 py-20 px-6 md:px-10">
+        <div class="max-w-7xl mx-auto">
 
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div class="text-center mb-14">
+                <h3 class="text-3xl md:text-4xl font-semibold">
+                    Available Equipment
+                </h3>
+            </div>
 
-                <div>
-                    <span class="material-icons text-4xl">speaker</span>
-                    <p>Sound System</p>
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
+
+                {% for e in equipments %}
+                <div class="bg-white p-5 rounded-2xl text-center shadow-sm hover:shadow-lg transition">
+
+                    {% if e.image %}
+                    <img src="{{ e.image.url }}" class="h-14 mx-auto mb-3">
+                    {% else %}
+                    <span class="material-icons text-4xl text-gray-400">devices</span>
+                    {% endif %}
+
+                    <p class="text-sm font-medium">{{ e.name }}</p>
+                    <p class="text-xs text-gray-400">Qty: {{ e.quantity }}</p>
+
                 </div>
-
-                <div>
-                    <span class="material-icons text-4xl">videocam</span>
-                    <p>Projector</p>
-                </div>
-
-                <div>
-                    <span class="material-icons text-4xl">chair</span>
-                    <p>Chairs</p>
-                </div>
-
-                <div>
-                    <span class="material-icons text-4xl">computer</span>
-                    <p>Computer</p>
-                </div>
+                {% empty %}
+                <p class="text-gray-400 col-span-full text-center">No equipment available.</p>
+                {% endfor %}
 
             </div>
         </div>
     </section>
+
 
     <!-- HOW IT WORKS -->
     <section id="how" class="py-16 md:py-20 px-6 md:px-10 text-center">

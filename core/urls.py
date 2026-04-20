@@ -7,10 +7,25 @@ urlpatterns = [
     path('login/', views.login_view, name='login'),
     path('dashboard/', views.user_dashboard, name='user_dashboard'),
     path('my-reservations/', views.my_reservations, name='my_reservations'),
+    path("api/book/", views.create_booking, name="create_booking"),
+    path("api/notifications/", views.get_user_notifications, name="get_user_notifications"),
+
     path('admin_reservations/<int:id>/status/', views.update_reservation_status, name='update_reservation_status'),
     path('admin_reservations/<int:id>/delete/', views.delete_reservation, name='delete_reservation'),
     path('facilities/', views.facilities_view, name='facilities'),
+    path("facility_schedule_page/<int:facility_id>/", views.facility_schedule_page, name="facility_schedule_page"),
+    path(
+        "api/facility-booked-dates/<int:facility_id>/",
+        views.booked_dates,
+        name="facility_booked_dates"
+    ),
+    path("api/facility-schedule/<int:facility_id>/", views.facility_schedule),
+    path('api/book/', views.book_reservation, name='book_reservation'),
     path('ajax/check_availability/', views.check_availability, name='check_availability'),
+
+    #for public view of facility details and schedule
+    path("facility/<int:id>/", views.facility_public_view, name="facility_public_view"),
+    path("api/facility-booked-dates/<int:id>/", views.facility_booked_dates, name="facility_booked_dates"),
 
     path('admin_dashboard/', views.admin_dashboard, name='admin_dashboard'),
     path('admin_facilities/', views.admin_facilities, name='admin_facilities'),

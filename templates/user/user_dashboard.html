@@ -17,10 +17,10 @@
 
     <!-- QUICK ACTION -->
     <div class="flex justify-end">
-        <a href=""
+        <a href="{% url 'facilities' %}"
            class="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-xl text-sm hover:bg-gray-800 transition">
             <span class="material-icons text-sm">add</span>
-            New Reservation
+            Book New Reservation
         </a>
     </div>
 
@@ -35,9 +35,8 @@
                     Upcoming Reservations
                 </h2>
 
-                <!-- VIEW ALL BUTTON -->
                 <a href="{% url 'my_reservations' %}"
-                class="text-xs text-gray-600 hover:text-gray-900 font-medium transition flex items-center gap-1">
+                   class="text-xs text-gray-600 hover:text-gray-900 font-medium transition flex items-center gap-1">
                     View all
                     <span class="material-icons text-base">arrow_forward</span>
                 </a>
@@ -89,46 +88,5 @@
         </div>
 
     </div>
-
-    <!-- RECENT ACTIVITY -->
-    <!-- <div class="bg-white border border-gray-100 rounded-2xl shadow-sm">
-
-        <div class="px-6 py-4 border-b border-gray-100">
-            <h2 class="text-lg font-semibold text-gray-900">
-                Recent Activity
-            </h2>
-        </div>
-
-        <div class="divide-y divide-gray-100">
-            {% for res in recent_reservations %}
-            <div class="flex items-center justify-between px-6 py-4 hover:bg-gray-50 transition">
-
-                <div>
-                    <p class="text-sm font-medium text-gray-800">
-                        {{ res.facility.name }}
-                    </p>
-                    <p class="text-xs text-gray-500">
-                        {{ res.date }} • {{ res.time_slot }}
-                    </p>
-                </div>
-
-                {% if res.status == 'approved' %}
-                    <span class="text-xs px-3 py-1 rounded-full bg-green-50 text-green-600">Approved</span>
-                {% elif res.status == 'pending' %}
-                    <span class="text-xs px-3 py-1 rounded-full bg-yellow-50 text-yellow-600">Pending</span>
-                {% else %}
-                    <span class="text-xs px-3 py-1 rounded-full bg-red-50 text-red-600">Rejected</span>
-                {% endif %}
-
-            </div>
-            {% empty %}
-            <p class="px-6 py-6 text-center text-gray-400 text-sm">
-                No activity yet
-            </p>
-            {% endfor %}
-        </div>
-
-    </div> -->
-
 </div>
 {% endblock %}

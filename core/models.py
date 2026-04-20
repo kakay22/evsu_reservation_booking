@@ -7,7 +7,7 @@ from datetime import datetime
 class User(AbstractUser):
     ROLE_CHOICES = [
         ('admin', 'Admin'),
-        ('staff', 'Staff'),
+        ('employee', 'Employee'),
         ('student', 'Student'),
     ]
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='employee')
@@ -107,6 +107,16 @@ class Reservation(models.Model):
     def clean(self):
         if self.start_time >= self.end_time:
             raise ValidationError("Start time must be before end time")
+
+        overlapping = Reservation.objects.filter(
+            facility=self.facility,
+            date=self.date,
+            start_time__lt=self.end_time,
+            end_time__gt=self.start_time
+        ).exclude(id=self.id)
+
+        if overlapping.exists():
+            raise ValidationError("This time slot is already booked.")
 
     @property
     def duration(self):

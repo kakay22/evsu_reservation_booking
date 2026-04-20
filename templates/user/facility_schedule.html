@@ -1,0 +1,399 @@
+{% extends 'user/base.html' %}
+{% block title %}Facility Booking{% endblock %}
+
+{% block content %}
+
+<div class="max-w-6xl mx-auto space-y-6">
+
+    <!-- HERO -->
+    <div class="relative rounded-2xl overflow-hidden h-56 flex items-end p-6 text-white">
+
+        <div class="absolute inset-0">
+            {% if facility.image %}
+                <img src="{{ facility.image.url }}" class="w-full h-full object-cover">
+            {% else %}
+                <div class="w-full h-full bg-gray-800"></div>
+            {% endif %}
+        </div>
+
+        <div class="absolute inset-0 bg-black/50"></div>
+
+        <div class="relative z-10">
+            <h1 class="text-2xl font-semibold">{{ facility.name }}</h1>
+            <p class="text-sm text-gray-200">Select an available date</p>
+        </div>
+
+    </div>
+
+    <div class="flex gap-4 text-sm mb-3">
+
+        <div class="flex items-center gap-2">
+            <span class="w-3 h-3 rounded bg-gray-100 border"></span>
+            Available
+        </div>
+
+        <div class="flex items-center gap-2">
+            <span class="w-3 h-3 rounded bg-red-100 border"></span>
+            Booked
+        </div>
+
+        <div class="flex items-center gap-2">
+            <span class="w-3 h-3 rounded ring-2 ring-blue-500"></span>
+            Today
+        </div>
+
+    </div>
+
+    <!-- CALENDAR -->
+    <div class="bg-white rounded-2xl shadow p-6">
+
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-lg font-semibold">Availability Calendar</h2>
+        </div>
+
+        <div id="calendar"
+             class="grid grid-cols-7 gap-2 text-center text-sm"></div>
+
+    </div>
+
+    <!-- BOOKING PANEL -->
+    <div id="bookingPanel" class="hidden bg-white rounded-2xl shadow p-6 space-y-6">
+
+        <div>
+            <h3 class="text-lg font-semibold">Booking Details</h3>
+            <p id="selectedDate" class="text-sm text-gray-500"></p>
+        </div>
+
+        <!-- TIME -->
+        <div class="grid grid-cols-2 gap-4">
+
+            <div>
+                <label class="text-sm text-gray-600">Start Time</label>
+                <input type="time" id="startTime"
+                       class="w-full border rounded-lg p-2">
+            </div>
+
+            <div>
+                <label class="text-sm text-gray-600">End Time</label>
+                <input type="time" id="endTime"
+                       class="w-full border rounded-lg p-2">
+            </div>
+
+        </div>
+
+        <!-- EQUIPMENT -->
+        <div>
+            <label class="text-sm font-medium text-gray-700 mb-2 block">
+                Equipment
+            </label>
+
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
+
+                {% for e in equipments %}
+                <label class="flex items-center gap-2 border rounded-lg p-2 hover:bg-gray-50 cursor-pointer">
+                    <input type="checkbox" value="{{ e.id }}" class="equipment">
+                    <span class="text-sm">{{ e.name }}</span>
+                </label>
+                {% endfor %}
+
+            </div>
+        </div>
+
+        <!-- NOTES -->
+        <textarea id="notes"
+                  placeholder="Notes..."
+                  class="w-full border rounded-lg p-2"></textarea>
+
+        <!-- BUTTON -->
+        <button onclick="submitBooking()"
+                class="w-full bg-black text-white py-2 rounded-xl hover:bg-gray-800">
+            Submit Booking
+        </button>
+
+    </div>
+
+</div>
+
+<script>
+
+let selectedDate = null;
+let bookedDates = [];
+let currentDate = new Date();
+
+/* ---------------------------
+   LOAD BOOKED DATES
+----------------------------*/
+async function fetchBookedDates() {
+    const res = await fetch(`/api/facility-booked-dates/{{ facility.id }}/`);
+    const data = await res.json();
+    bookedDates = data.dates || [];
+    renderCalendar();
+}
+
+/* ---------------------------
+   FORMAT DATE
+----------------------------*/
+function formatDate(d) {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+}
+
+/* ---------------------------
+   GO TODAY
+----------------------------*/
+function goToday() {
+    currentDate = new Date();
+    renderCalendar();
+}
+
+function renderCalendar() {
+
+    const cal = document.getElementById("calendar");
+    cal.innerHTML = "";
+
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    const todayStr = formatDate(new Date());
+
+    /* ---------------------------
+       HEADER (FIXED LAYOUT)
+    ----------------------------*/
+    const header = document.createElement("div");
+    header.className = "col-span-7 flex justify-between items-center mb-3";
+
+    header.innerHTML = `
+        <button onclick="prevMonth()" class="px-3 py-1 rounded-lg bg-gray-100 hover:bg-gray-200">
+            ‹
+        </button>
+
+        <div class="flex items-center gap-4">
+            <button onclick="goToday()"
+                class="px-3 py-1 text-xs rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition">
+                Today
+            </button>
+
+            <div class="font-semibold text-gray-800 text-lg">
+                ${currentDate.toLocaleString('default', { month: 'long' })} ${year}
+            </div>
+        </div>
+
+        <button onclick="nextMonth()" class="px-3 py-1 rounded-lg bg-gray-100 hover:bg-gray-200">
+            ›
+        </button>
+    `;
+
+    cal.appendChild(header);
+
+    /* ---------------------------
+       WEEKDAY LABELS
+    ----------------------------*/
+    const daysRow = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+    daysRow.forEach(d => {
+        const el = document.createElement("div");
+        el.className = "text-xs text-gray-500 font-medium text-center";
+        el.innerText = d;
+        cal.appendChild(el);
+    });
+
+    /* ---------------------------
+       EMPTY SPACES
+    ----------------------------*/
+    for (let i = 0; i < firstDay; i++) {
+        cal.appendChild(document.createElement("div"));
+    }
+
+    /* ---------------------------
+       DAYS
+    ----------------------------*/
+    for (let day = 1; day <= daysInMonth; day++) {
+
+        const dateObj = new Date(year, month, day);
+        const dateStr = formatDate(dateObj);
+
+        const isBooked = bookedDates.includes(dateStr);
+        const isToday = dateStr === todayStr;
+
+        const cell = document.createElement("div");
+
+        cell.className = `
+            p-3 rounded-lg text-sm border transition select-none text-center
+
+            ${isBooked
+                ? "bg-red-100 border-red-200 text-red-600 cursor-not-allowed"
+                : isToday
+                    ? "bg-blue-100 border-blue-300 text-blue-700 ring-2 ring-blue-500 cursor-pointer"
+                    : "bg-gray-50 hover:bg-gray-100 cursor-pointer"}
+        `;
+
+        cell.innerHTML = `
+            <div class="font-medium">${day}</div>
+        `;
+
+        if (!isBooked) {
+            cell.onclick = () => selectDate(dateStr, cell);
+        }
+
+        cal.appendChild(cell);
+    }
+}
+
+/* ---------------------------
+   MONTH NAV
+----------------------------*/
+function prevMonth() {
+    currentDate.setMonth(currentDate.getMonth() - 1);
+    renderCalendar();
+}
+
+function nextMonth() {
+    currentDate.setMonth(currentDate.getMonth() + 1);
+    renderCalendar();
+}
+
+/* ---------------------------
+   SELECT DATE
+----------------------------*/
+function selectDate(dateStr, el) {
+
+    selectedDate = dateStr;
+
+    document.querySelectorAll("#calendar div").forEach(d => {
+        d.classList.remove("ring-2", "ring-black");
+    });
+
+    el.classList.add("ring-2", "ring-black");
+
+    document.getElementById("bookingPanel").classList.remove("hidden");
+
+    const [year, month, day] = dateStr.split('-');
+    const dateObj = new Date(year, month - 1, day);
+
+    const formattedDate = dateObj.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+
+    document.getElementById("selectedDate").innerText =
+        "Selected: " + formattedDate;
+
+    // ✅ AUTO SCROLL TO BOOKING PANEL
+    setTimeout(() => {
+        document.getElementById("bookingPanel")
+            .scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
+}
+
+/* ---------------------------
+   MOBILE SWIPE
+----------------------------*/
+let touchStartX = 0;
+
+document.addEventListener("touchstart", e => {
+    touchStartX = e.changedTouches[0].screenX;
+});
+
+document.addEventListener("touchend", e => {
+    let touchEndX = e.changedTouches[0].screenX;
+
+    if (touchEndX < touchStartX - 50) nextMonth();
+    if (touchEndX > touchStartX + 50) prevMonth();
+});
+
+/* INIT */
+fetchBookedDates();
+
+async function submitBooking() {
+
+    if (!selectedDate) {
+        showToast("Please select a date first.", "error");
+        return;
+    }
+
+    const start = document.getElementById("startTime").value;
+    const end = document.getElementById("endTime").value;
+    const notes = document.getElementById("notes").value;
+
+    const equipments = Array.from(
+        document.querySelectorAll(".equipment:checked")
+    ).map(e => e.value);
+
+    // basic validation
+    if (!start || !end) {
+        showToast("Please select start and end time.", "error");
+        return;
+    }
+
+    try {
+        const res = await fetch("{% url 'create_booking' %}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": getCookie("csrftoken")
+            },
+            body: JSON.stringify({
+                facility: {{ facility.id }},
+                date: selectedDate,
+                start_time: start,
+                end_time: end,
+                notes: notes,
+                equipment: equipments
+            })
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+
+            // success UX
+            showToast("Booking Submitted Successfully", "success");
+
+            // reset form
+            document.getElementById("startTime").value = "";
+            document.getElementById("endTime").value = "";
+            document.getElementById("notes").value = "";
+            document.querySelectorAll(".equipment:checked")
+                .forEach(e => e.checked = false);
+
+        } else {
+
+            // conflict or validation error
+            showToast("Unable to complete booking.", "error");
+        }
+
+    } catch (err) {
+        console.error(err);
+        showToast("Server error, pls. try again.", "error");
+    }
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+
+    return cookieValue;
+}
+
+</script>
+
+{% endblock %}

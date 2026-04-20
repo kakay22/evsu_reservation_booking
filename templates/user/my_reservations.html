@@ -5,139 +5,215 @@
 {% block content %}
 <div class="max-w-7xl mx-auto py-6 space-y-8">
 
-    <!-- PAGE HEADER -->
+    <!-- HEADER -->
     <div class="flex flex-col md:flex-row md:justify-between md:items-center">
-        <h2 class="text-3xl font-bold text-gray-900">My Reservations</h2>
-        <p class="mt-2 md:mt-0 text-gray-600">View your upcoming and past reservations or book a new facility.</p>
+        <div>
+            <h2 class="text-3xl font-bold text-gray-900">My Reservations</h2>
+            <p class="text-gray-600 mt-1">
+                Manage your bookings and schedule facilities easily.
+            </p>
+        </div>
+
+        <!-- OPEN MODAL BUTTON -->
+        <a href="{% url 'facilities' %}"
+           class="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-xl text-sm hover:bg-gray-800 transition">
+            <span class="material-icons text-sm">add</span>
+            Book New Reservation
+        </a>
     </div>
 
-    <!-- DISPLAY MESSAGES -->
-    {% if messages %}
-    <div class="space-y-2">
-        {% for message in messages %}
-            <div class="p-4 rounded shadow-sm text-white {% if message.tags == 'error' %}bg-red-600{% else %}bg-green-600{% endif %}">
-                {{ message }}
-            </div>
+    <!-- TOGGLE -->
+    <div class="flex items-center justify-between">
+        <h3 class="text-xl font-semibold">Your Reservations</h3>
+
+        <div class="flex bg-gray-100 p-1 rounded-xl">
+            <button onclick="showView('calendar')" id="btnCalendar"
+                class="px-4 py-1 text-sm rounded-lg bg-white shadow">
+                Calendar
+            </button>
+
+            <button onclick="showView('list')" id="btnList"
+                class="px-4 py-1 text-sm text-gray-600">
+                List
+            </button>
+        </div>
+    </div>
+
+    <!-- CALENDAR -->
+    <div id="calendarView" class="hidden bg-white rounded-2xl shadow p-4">
+        <div class="grid grid-cols-7 gap-2 text-xs text-gray-700" id="calendar"></div>
+    </div>
+
+    <!-- LIST -->
+    <div id="listView" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+        {% for res in reservations %}
+        <div class="bg-white shadow rounded-2xl p-6 hover:shadow-lg transition">
+
+            <h4 class="font-semibold text-gray-900">{{ res.facility.name }}</h4>
+            <p class="text-sm text-gray-500">{{ res.date|date:"M d, Y" }}</p>
+            <p class="text-sm text-gray-500">{{ res.time_slot }}</p>
+            <p class="text-sm text-gray-500">{{ res.notes|default:"No notes" }}</p>
+
+            <span class="mt-3 inline-block px-3 py-1 text-xs rounded-full
+                {% if res.status == 'pending' %}bg-yellow-100 text-yellow-800
+                {% elif res.status == 'approved' %}bg-green-100 text-green-800
+                {% else %}bg-red-100 text-red-800{% endif %}">
+                {{ res.status|capfirst }}
+            </span>
+
+        </div>
         {% endfor %}
-    </div>
-    {% endif %}
 
-    <!-- NEW RESERVATION FORM -->
-    <div class="bg-white rounded-2xl shadow p-6 md:p-8">
-        <h3 class="text-xl font-semibold text-gray-900 mb-4">Book a New Reservation</h3>
+    </div>
+
+</div>
+
+<!-- ================= MODAL ================= -->
+<div id="reservationModal"
+     class="fixed inset-0 hidden items-center justify-center z-50">
+
+    <!-- BACKDROP -->
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm"
+         onclick="closeModal()"></div>
+
+    <!-- MODAL BOX -->
+    <div class="relative bg-white w-[95%] max-w-2xl rounded-2xl shadow-xl p-6 animate-fadeIn">
+
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-semibold">Book a Reservation</h3>
+            <button onclick="closeModal()" class="text-gray-500 hover:text-black text-2xl">
+                &times;
+            </button>
+        </div>
+
         <form method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-4">
             {% csrf_token %}
 
-            <!-- ---------- NON-FIELD ERRORS ---------- -->
             {% if form.non_field_errors %}
-            <div class="md:col-span-2 bg-red-50 border border-red-200 text-red-700 p-3 rounded mb-4">
+            <div class="md:col-span-2 bg-red-50 border border-red-200 text-red-700 p-3 rounded-lg">
                 {% for error in form.non_field_errors %}
                     <p>{{ error }}</p>
                 {% endfor %}
             </div>
             {% endif %}
 
-            <!-- Facility -->
-            <div class="flex flex-col">
+            <div>
                 {{ form.facility.label_tag }}
-                {{ form.facility|add_class:"border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none" }}
-                {% if form.facility.errors %}
-                    <p class="text-red-600 text-sm mt-1">{{ form.facility.errors|striptags }}</p>
-                {% endif %}
+                {{ form.facility|add_class:"input" }}
             </div>
 
-            <!-- Date -->
-            <div class="flex flex-col">
+            <div>
                 {{ form.date.label_tag }}
-                {{ form.date|add_class:"border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none" }}
-                {% if form.date.errors %}
-                    <p class="text-red-600 text-sm mt-1">{{ form.date.errors|striptags }}</p>
-                {% endif %}
+                {{ form.date|add_class:"input" }}
             </div>
 
-            <!-- Start Time -->
-            <div class="flex flex-col">
+            <div>
                 {{ form.start_time.label_tag }}
-                {{ form.start_time|add_class:"border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none" }}
-                {% if form.start_time.errors %}
-                    <p class="text-red-600 text-sm mt-1">{{ form.start_time.errors|striptags }}</p>
-                {% endif %}
+                {{ form.start_time|add_class:"input" }}
             </div>
 
-            <!-- End Time -->
-            <div class="flex flex-col">
+            <div>
                 {{ form.end_time.label_tag }}
-                {{ form.end_time|add_class:"border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none" }}
-                {% if form.end_time.errors %}
-                    <p class="text-red-600 text-sm mt-1">{{ form.end_time.errors|striptags }}</p>
-                {% endif %}
+                {{ form.end_time|add_class:"input" }}
             </div>
 
-            <!-- Notes -->
-            <div class="flex flex-col md:col-span-2">
+            <div class="md:col-span-2">
                 {{ form.notes.label_tag }}
-                {{ form.notes|add_class:"border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none" }}
-                {% if form.notes.errors %}
-                    <p class="text-red-600 text-sm mt-1">{{ form.notes.errors|striptags }}</p>
-                {% endif %}
+                {{ form.notes|add_class:"input" }}
             </div>
 
-            <!-- Equipment -->
-            <div class="flex flex-col md:col-span-2">
-                <label class="font-medium text-gray-700 mb-2">Select Equipment</label>
-                {% if form.equipment.errors %}
-                    <p class="text-red-600 text-sm mb-1">{{ form.equipment.errors|striptags }}</p>
-                {% endif %}
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+            <div class="md:col-span-2">
+                <label class="font-medium mb-2 block">Equipment</label>
+                <div class="grid grid-cols-2 gap-2">
                     {% for checkbox in form.equipment %}
-                        <label class="flex items-center gap-2 border rounded-lg px-3 py-2 hover:bg-gray-100 transition cursor-pointer">
+                        <label class="flex items-center gap-2 border p-2 rounded-lg">
                             {{ checkbox.tag }}
-                            <span class="text-gray-700">{{ checkbox.choice_label }}</span>
+                            <span class="text-sm">{{ checkbox.choice_label }}</span>
                         </label>
-                    {% empty %}
-                        <p class="text-gray-500 text-sm">No equipment available.</p>
                     {% endfor %}
                 </div>
             </div>
 
-            <!-- Submit -->
-            <div class="md:col-span-2 flex justify-end">
-                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-xl transition">
-                    Submit Reservation
+            <div class="md:col-span-2 flex justify-end gap-2 mt-2">
+                <button type="button" onclick="closeModal()"
+                    class="px-4 py-2 bg-gray-100 rounded-lg">
+                    Cancel
+                </button>
+
+                <button type="submit"
+                    class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg">
+                    Submit
                 </button>
             </div>
+
         </form>
     </div>
-
-    <!-- USER RESERVATIONS CARDS -->
-    {% if reservations %}
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {% for res in reservations %}
-        <div class="bg-white shadow rounded-2xl p-6 flex flex-col justify-between hover:shadow-lg transition">
-            <div>
-                <h4 class="text-lg font-semibold text-gray-900">{{ res.facility.name }}</h4>
-                <p class="text-gray-500 text-sm">{{ res.date|date:"M d, Y" }}</p>
-                <p class="text-gray-500 text-sm">{{ res.time_slot }}</p>
-                <p class="text-gray-500 text-sm">{{ res.notes|default:"No notes" }}</p>
-            </div>
-            <span class="mt-4 inline-block px-3 py-1 text-sm font-medium rounded-full
-                {% if res.status == 'pending' %}bg-yellow-100 text-yellow-800
-                {% elif res.status == 'approved' %}bg-green-100 text-green-800
-                {% else %}bg-red-100 text-red-800{% endif %}">
-                {{ res.status|capfirst }}
-            </span>
-        </div>
-        {% endfor %}
-    </div>
-    {% else %}
-    <div class="text-center py-20">
-        <svg class="mx-auto h-24 w-24 text-gray-300 mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-        </svg>
-        <p class="text-gray-500 text-lg">You have no reservations yet. Use the form above to book a facility.</p>
-    </div>
-    {% endif %}
-
 </div>
+
+<!-- STYLE -->
+<style>
+.input {
+    width: 100%;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 10px;
+    outline: none;
+}
+
+.input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px #dbeafe;
+}
+
+/* animation */
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.animate-fadeIn {
+    animation: fadeIn 0.2s ease-out;
+}
+</style>
+
+<!-- SCRIPT -->
+<script>
+function openModal() {
+    const modal = document.getElementById("reservationModal");
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+}
+
+function closeModal() {
+    const modal = document.getElementById("reservationModal");
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+}
+
+function showView(type) {
+    const calendar = document.getElementById("calendarView");
+    const list = document.getElementById("listView");
+
+    const btnCal = document.getElementById("btnCalendar");
+    const btnList = document.getElementById("btnList");
+
+    if (type === "calendar") {
+        calendar.classList.remove("hidden");
+        list.classList.add("hidden");
+
+        btnCal.classList.add("bg-white", "shadow");
+        btnList.classList.remove("bg-white", "shadow");
+    } else {
+        list.classList.remove("hidden");
+        calendar.classList.add("hidden");
+
+        btnList.classList.add("bg-white", "shadow");
+        btnCal.classList.remove("bg-white", "shadow");
+    }
+}
+
+showView("list");
+</script>
+
 {% endblock %}

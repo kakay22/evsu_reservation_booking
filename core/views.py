@@ -30,9 +30,17 @@ from django.db.models.functions import TruncMonth
 from django.db.models import Count
 from dateutil.relativedelta import relativedelta
 
+from django.db import transaction
+
 # ---------- HOME ----------
 def home(request):
-    return render(request, 'core/home.html')
+    facilities = Facility.objects.filter(is_active=True)
+    equipments = Equipment.objects.filter(is_active=True)
+
+    return render(request, 'core/home.html', {
+        "facilities": facilities,
+        "equipments": equipments
+    })
 
 
 # ---------- REGISTER ----------
@@ -170,83 +178,6 @@ def my_reservations(request):
     user = request.user
     today = timezone.now().date()
 
-    # ---------- HANDLE FORM ----------
-    if request.method == "POST":
-        form = ReservationForm(request.POST)
-
-        if form.is_valid():
-            try:
-                reservation = form.save(commit=False)
-                reservation.user = user
-                reservation.status = "pending"
-                reservation.save()
-
-                # -----------------------------
-                # 👤 USER NOTIFICATION
-                # -----------------------------
-                Notification.objects.create(
-                    user=user,
-                    message=f"Your reservation for {reservation.facility.name} on {reservation.date} is pending approval.",
-                    type="reservation",
-                    target_audience="user",
-                    reservation=reservation
-                )
-
-                # -----------------------------
-                # 🧑‍💼 ADMIN NOTIFICATION
-                # -----------------------------
-                admin_users = User.objects.filter(is_superuser=True)
-
-                for admin in admin_users:
-                    Notification.objects.create(
-                        user=admin,
-                        message=f"New reservation from {user.username} for {reservation.facility.name} on {reservation.date}.",
-                        type="reservation",
-                        target_audience="admin",
-                        reservation=reservation
-                    )
-
-                # 🔥 IMPORTANT: Clear existing equipment (safe for reuse/edit logic)
-                ReservationEquipment.objects.filter(reservation=reservation).delete()
-
-                # ✅ Save selected equipment
-                equipments = form.cleaned_data.get('equipment')
-                if equipments:
-                    equipment_bulk = [
-                        ReservationEquipment(
-                            reservation=reservation,
-                            equipment=eq,
-                            quantity=1
-                        )
-                        for eq in equipments
-                    ]
-                    ReservationEquipment.objects.bulk_create(equipment_bulk)
-
-                messages.success(
-                    request,
-                    f"Reservation for {reservation.facility.name} on {reservation.date} submitted successfully!"
-                )
-
-                return redirect('my_reservations')
-
-            except IntegrityError:
-                messages.error(
-                    request,
-                    "This time slot is already booked or conflicts with another reservation."
-                )
-
-            except Exception as e:
-                messages.error(
-                    request,
-                    "Something went wrong. Please try again."
-                )
-
-        else:
-            messages.error(request, "Please correct the errors below.")
-
-    else:
-        form = ReservationForm()
-
     # ---------- FETCH RESERVATIONS ----------
     reservations = (
         Reservation.objects
@@ -266,11 +197,208 @@ def my_reservations(request):
 
     context = {
         'reservations': reservations,
-        'form': form,
         'facilities': facilities,
     }
 
     return render(request, 'user/my_reservations.html', context)
+
+from django.views.decorators.http import require_POST
+
+@login_required
+@require_POST
+def create_booking(request):
+    try:
+        data = json.loads(request.body)
+
+        facility_id = data.get("facility")
+        date = data.get("date")
+        start_time = data.get("start_time")
+        end_time = data.get("end_time")
+        notes = data.get("notes", "")
+        equipment_ids = data.get("equipment", [])
+
+        # ----------------------------
+        # VALIDATION
+        # ----------------------------
+        if not all([facility_id, date, start_time, end_time]):
+            return JsonResponse({"success": False, "error": "Missing fields"}, status=400)
+
+        if start_time >= end_time:
+            return JsonResponse({"success": False, "error": "Invalid time range"}, status=400)
+
+        # ----------------------------
+        # CONFLICT CHECK (IMPORTANT)
+        # ----------------------------
+        conflict = Reservation.objects.filter(
+            facility_id=facility_id,
+            date=date,
+            start_time__lt=end_time,
+            end_time__gt=start_time
+        ).exists()
+
+        if conflict:
+            return JsonResponse({
+                "success": False,
+                "error": "This time slot is already booked"
+            }, status=409)
+
+        # ----------------------------
+        # CREATE BOOKING
+        # ----------------------------
+        with transaction.atomic():
+
+            reservation = Reservation.objects.create(
+                user=request.user,
+                facility_id=facility_id,
+                date=date,
+                start_time=start_time,
+                end_time=end_time,
+                notes=notes,
+                status="pending"
+            )
+
+            # -----------------------------
+            # 👤 USER NOTIFICATION
+            # -----------------------------
+            Notification.objects.create(
+                user=request.user,
+                message=f"Your reservation for {reservation.facility.name} on {reservation.date} is pending approval.",
+                type="reservation",
+                target_audience=request.user.role,  # ✅ FIXED
+                reservation=reservation
+            )
+
+            # -----------------------------
+            # 🧑‍💼 ADMIN NOTIFICATIONS
+            # -----------------------------
+            admin_users = User.objects.filter(is_superuser=True)
+
+            notifications = [
+                Notification(
+                    user=admin,
+                    message=f"New reservation from {request.user.username} for {reservation.facility.name} on {reservation.date}.",
+                    type="reservation",
+                    target_audience="admin",
+                    reservation=reservation
+                )
+                for admin in admin_users
+            ]
+
+            Notification.objects.bulk_create(notifications)
+
+            # equipment (M2M through table)
+            ReservationEquipment.objects.filter(reservation=reservation).delete()
+
+            equipment_bulk = [
+                ReservationEquipment(
+                    reservation=reservation,
+                    equipment_id=eq_id,
+                    quantity=1
+                )
+                for eq_id in equipment_ids
+            ]
+
+            ReservationEquipment.objects.bulk_create(equipment_bulk)
+
+        return JsonResponse({
+            "success": True,
+            "message": "Booking created successfully"
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            "success": False,
+            "error": str(e)
+        }, status=500)
+
+def facility_schedule(request, facility_id):
+    date = request.GET.get("date")
+
+    bookings = Reservation.objects.filter(
+        facility_id=facility_id,
+        date=date
+    )
+
+    # generate time slots (example: 8am–5pm)
+    slots = []
+    for hour in range(8, 17):
+        start = f"{hour:02d}:00"
+        end = f"{hour+1:02d}:00"
+
+        booked = bookings.filter(start_time=start, end_time=end).exists()
+
+        slots.append({
+            "start": start,
+            "end": end,
+            "status": "booked" if booked else "available"
+        })
+
+    return JsonResponse({"slots": slots})
+
+def facility_schedule_page(request, facility_id):
+    facility = get_object_or_404(Facility, id=facility_id)
+
+    equipments = Equipment.objects.all()  # or filter by facility if related
+
+    return render(request, "user/facility_schedule.html", {
+        "facility": facility,
+        "equipments": equipments,
+    })
+
+def booked_dates(request, facility_id):
+    bookings = Reservation.objects.filter(
+        facility_id=facility_id,
+        status="approved"
+    ).values_list("date", flat=True)
+
+    return JsonResponse({
+        "dates": list(set(str(d) for d in bookings))
+    })
+
+
+# ---------- PUBLIC FACILITY VIEW ----------
+def facility_public_view(request, id):
+    facility = get_object_or_404(Facility, id=id, is_active=True)
+
+    return render(request, "core/facility_public.html", {
+        "facility": facility
+    })
+
+#AJAX booking from public view
+def facility_booked_dates(request, id):
+    reservations = Reservation.objects.filter(
+        facility_id=id,
+        status__in=["pending", "approved"]
+    )
+
+    dates = list(reservations.values_list("date", flat=True))
+
+    return JsonResponse({
+        "dates": list(set(str(d) for d in dates))
+    })
+
+def book_reservation(request):
+    data = json.loads(request.body)
+
+    conflict = Reservation.objects.filter(
+        facility_id=data["facility"],
+        date=data["date"],
+        start_time__lt=data["end_time"],
+        end_time__gt=data["start_time"]
+    ).exists()
+
+    if conflict:
+        return JsonResponse({"success": False, "error": "Time slot already booked"})
+
+    Reservation.objects.create(
+        facility_id=data["facility"],
+        date=data["date"],
+        start_time=data["start_time"],
+        end_time=data["end_time"],
+        user=request.user
+    )
+
+    return JsonResponse({"success": True})
 
 # ---------- BOOKING DETAIL ----------
 @login_required
@@ -627,16 +755,37 @@ def admin_reservations(request):
 @csrf_exempt
 def update_reservation_status(request, id):
     if request.method == "POST":
+
         data = json.loads(request.body)
         status = data.get("status")
 
-        from .models import Reservation
-        res = Reservation.objects.get(id=id)
+        try:
+            res = Reservation.objects.get(id=id)
 
-        if status in ["approved", "rejected"]:
-            res.status = status
-            res.save()
-            return JsonResponse({"success": True})
+            if status in ["approved", "rejected"]:
+                res.status = status
+                res.save()
+
+                # =========================
+                # 🔔 USER NOTIFICATION
+                # =========================
+                notif_type = "approval" if status == "approved" else "rejection"
+
+                Notification.objects.create(
+                    user=res.user,
+                    message=f"Your reservation for {res.facility.name} on {res.date} has been {status}.",
+                    type=notif_type,  # ✅ dynamic type
+                    target_audience="employee",
+                    reservation=res
+                )           
+
+                return JsonResponse({
+                    "success": True,
+                    "message": f"Reservation {status}"
+                })
+
+        except Reservation.DoesNotExist:
+            return JsonResponse({"success": False, "error": "Reservation not found"}, status=404)
 
     return JsonResponse({"success": False}, status=400)
 
@@ -717,6 +866,30 @@ def mark_notification_as_read(request, id):
         return JsonResponse({"success": True})
 
     return JsonResponse({"success": False}, status=400)
+
+@login_required
+def get_user_notifications(request):
+
+    notifications = Notification.objects.filter(
+        user=request.user,
+        target_audience__in=['employee', 'both']
+    ).order_by('-created_at')[:20]
+
+    data = [
+        {
+            "id": n.id,
+            "message": n.message,
+            "type": n.type,  # ✅ REQUIRED for icon + routing
+            "is_read": n.is_read,
+            "created_at": n.created_at.strftime("%b %d, %Y %I:%M %p"),
+
+            # ✅ IMPORTANT: needed for redirect
+            "reservation_id": n.reservation.id if n.reservation else None
+        }
+        for n in notifications
+    ]
+
+    return JsonResponse({"notifications": data})
 
 from django.contrib.auth import logout
 
