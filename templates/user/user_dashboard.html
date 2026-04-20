@@ -3,59 +3,132 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
-<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-    <!-- Total Reservations -->
-    <div class="bg-white rounded-2xl shadow p-6 flex flex-col">
-        <h3 class="text-gray-500 font-medium">Total Reservations</h3>
-        <p class="text-3xl font-semibold mt-2">{{ total_reservations }}</p>
+<div class="max-w-7xl mx-auto space-y-8">
+
+    <!-- GREETING -->
+    <div>
+        <h1 class="text-2xl font-semibold text-gray-900">
+            Welcome back 👋
+        </h1>
+        <p class="text-sm text-gray-500">
+            Here’s what’s happening with your reservations
+        </p>
     </div>
 
-    <!-- Pending Approvals -->
-    <div class="bg-white rounded-2xl shadow p-6 flex flex-col">
-        <h3 class="text-gray-500 font-medium">Pending Approvals</h3>
-        <p class="text-3xl font-semibold mt-2">{{ pending_approvals }}</p>
+    <!-- QUICK ACTION -->
+    <div class="flex justify-end">
+        <a href=""
+           class="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-xl text-sm hover:bg-gray-800 transition">
+            <span class="material-icons text-sm">add</span>
+            New Reservation
+        </a>
     </div>
 
-    <!-- Upcoming Reservations -->
-    <div class="bg-white rounded-2xl shadow p-6 flex flex-col">
-        <h3 class="text-gray-500 font-medium">Upcoming Reservations</h3>
-        <p class="text-3xl font-semibold mt-2">{{ upcoming_reservations }}</p>
-    </div>
-</div>
+    <!-- MAIN GRID -->
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
 
-<!-- Recent Reservations Table -->
-<div class="mt-10 bg-white rounded-2xl shadow overflow-x-auto">
-    <table class="min-w-full table-auto">
-        <thead class="bg-gray-50">
-            <tr>
-                <th class="px-6 py-3 text-left text-gray-500 uppercase text-xs">Facility</th>
-                <th class="px-6 py-3 text-left text-gray-500 uppercase text-xs">Date</th>
-                <th class="px-6 py-3 text-left text-gray-500 uppercase text-xs">Time</th>
-                <th class="px-6 py-3 text-left text-gray-500 uppercase text-xs">Status</th>
-            </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-100">
+        <!-- LEFT: UPCOMING -->
+        <div class="xl:col-span-2 bg-white border border-gray-100 rounded-2xl shadow-sm p-6">
+
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-semibold text-gray-900">
+                    Upcoming Reservations
+                </h2>
+
+                <!-- VIEW ALL BUTTON -->
+                <a href="{% url 'my_reservations' %}"
+                class="text-xs text-gray-600 hover:text-gray-900 font-medium transition flex items-center gap-1">
+                    View all
+                    <span class="material-icons text-base">arrow_forward</span>
+                </a>
+            </div>
+
+            <div class="space-y-4">
+                {% for res in upcoming_list %}
+                <div class="flex items-center justify-between p-4 rounded-xl border border-gray-100 hover:bg-gray-50 transition">
+
+                    <div>
+                        <p class="font-medium text-gray-800">
+                            {{ res.facility.name }}
+                        </p>
+                        <p class="text-xs text-gray-500">
+                            {{ res.date }} • {{ res.time_slot }}
+                        </p>
+                    </div>
+
+                    <span class="text-xs px-3 py-1 rounded-full bg-green-50 text-green-600">
+                        Approved
+                    </span>
+
+                </div>
+                {% empty %}
+                <p class="text-sm text-gray-400">No upcoming reservations</p>
+                {% endfor %}
+            </div>
+
+        </div>
+
+        <!-- RIGHT: STATS -->
+        <div class="space-y-4">
+
+            <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+                <p class="text-xs text-gray-500">Total Reservations</p>
+                <p class="text-2xl font-semibold mt-2">{{ total_reservations }}</p>
+            </div>
+
+            <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+                <p class="text-xs text-gray-500">Pending</p>
+                <p class="text-2xl font-semibold mt-2">{{ pending_approvals }}</p>
+            </div>
+
+            <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+                <p class="text-xs text-gray-500">Upcoming</p>
+                <p class="text-2xl font-semibold mt-2">{{ upcoming_reservations }}</p>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- RECENT ACTIVITY -->
+    <!-- <div class="bg-white border border-gray-100 rounded-2xl shadow-sm">
+
+        <div class="px-6 py-4 border-b border-gray-100">
+            <h2 class="text-lg font-semibold text-gray-900">
+                Recent Activity
+            </h2>
+        </div>
+
+        <div class="divide-y divide-gray-100">
             {% for res in recent_reservations %}
-            <tr>
-                <td class="px-6 py-4">{{ res.facility.name }}</td>
-                <td class="px-6 py-4">{{ res.date }}</td>
-                <td class="px-6 py-4">{{ res.time_slot }}</td>
-                <td class="px-6 py-4">
-                    {% if res.status == 'approved' %}
-                        <span class="text-green-600 font-medium">Approved</span>
-                    {% elif res.status == 'pending' %}
-                        <span class="text-yellow-500 font-medium">Pending</span>
-                    {% else %}
-                        <span class="text-red-600 font-medium">Rejected</span>
-                    {% endif %}
-                </td>
-            </tr>
+            <div class="flex items-center justify-between px-6 py-4 hover:bg-gray-50 transition">
+
+                <div>
+                    <p class="text-sm font-medium text-gray-800">
+                        {{ res.facility.name }}
+                    </p>
+                    <p class="text-xs text-gray-500">
+                        {{ res.date }} • {{ res.time_slot }}
+                    </p>
+                </div>
+
+                {% if res.status == 'approved' %}
+                    <span class="text-xs px-3 py-1 rounded-full bg-green-50 text-green-600">Approved</span>
+                {% elif res.status == 'pending' %}
+                    <span class="text-xs px-3 py-1 rounded-full bg-yellow-50 text-yellow-600">Pending</span>
+                {% else %}
+                    <span class="text-xs px-3 py-1 rounded-full bg-red-50 text-red-600">Rejected</span>
+                {% endif %}
+
+            </div>
             {% empty %}
-            <tr>
-                <td colspan="4" class="px-6 py-4 text-gray-400 text-center">No reservations yet</td>
-            </tr>
+            <p class="px-6 py-6 text-center text-gray-400 text-sm">
+                No activity yet
+            </p>
             {% endfor %}
-        </tbody>
-    </table>
+        </div>
+
+    </div> -->
+
 </div>
 {% endblock %}

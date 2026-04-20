@@ -128,10 +128,29 @@ def user_dashboard(request):
 
     reservations = Reservation.objects.filter(user=user)
 
+    # UPCOMING LIST (limit to next 5, ordered soonest first)
+    upcoming_qs = reservations.filter(
+        date__gte=today,
+        status='approved'   # optional but recommended
+    ).order_by('date', 'start_time')[:5]
+
     context = {
         'total_reservations': reservations.count(),
         'pending_approvals': reservations.filter(status='pending').count(),
         'upcoming_reservations': reservations.filter(date__gte=today).count(),
+
+        # ✅ NEW: upcoming list
+        'upcoming_list': [
+            {
+                'facility': r.facility,
+                'date': r.date,
+                'status': r.status,
+                'time_slot': f"{r.start_time.strftime('%I:%M %p')} - {r.end_time.strftime('%I:%M %p')}",
+            }
+            for r in upcoming_qs
+        ],
+
+        # existing recent
         'recent_reservations': [
             {
                 'facility': r.facility,
@@ -139,9 +158,11 @@ def user_dashboard(request):
                 'status': r.status,
                 'time_slot': f"{r.start_time.strftime('%I:%M %p')} - {r.end_time.strftime('%I:%M %p')}",
                 'notes': r.notes,
-            } for r in reservations.order_by('-date', '-start_time')[:5]
+            }
+            for r in reservations.order_by('-date', '-start_time')[:5]
         ]
     }
+
     return render(request, 'user/user_dashboard.html', context)
 
 @login_required
