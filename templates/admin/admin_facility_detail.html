@@ -1,0 +1,286 @@
+{% extends 'admin/admin_base.html' %}
+{% block title %}Facility Details{% endblock %}
+
+{% block content %}
+
+<style>
+    .group:hover img {
+        filter: brightness(0.9);
+    }
+</style>
+
+<div class="max-w-6xl mx-auto space-y-8">
+
+    <!-- HEADER -->
+    <div class="flex justify-between items-start">
+        <div>
+            <h1 class="text-3xl font-semibold text-gray-900 tracking-tight">
+                {{ facility.name }}
+            </h1>
+            <p class="text-sm text-gray-500 mt-1">
+                Facility overview, schedule, and reservation management
+            </p>
+        </div>
+
+        <a href="{% url 'admin_facilities' %}"
+            class="text-sm px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 transition">
+            ← Back
+        </a>
+    </div>
+
+    <!-- FACILITY OVERVIEW -->
+    <div class="grid md:grid-cols-3 gap-6">
+
+        <!-- IMAGE CARD -->
+        <div class="rounded-2xl overflow-hidden border bg-white shadow-sm hover:shadow-md transition group cursor-pointer"
+            data-bs-toggle="modal" data-bs-target="#imageModal">
+
+            <div class="h-60 overflow-hidden relative">
+
+                <img src="{{ facility.image.url }}"
+                    class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+
+                <!-- HINT OVERLAY -->
+                <div
+                    class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition flex items-center justify-center">
+                    <span class="text-white text-sm opacity-0 group-hover:opacity-100 transition">
+                        Click to view
+                    </span>
+                </div>
+
+            </div>
+
+            <div class="p-4 space-y-2">
+
+                <span class="inline-flex items-center px-3 py-1 text-xs rounded-full
+            {% if facility.is_active %}bg-green-50 text-green-600
+            {% else %}bg-red-50 text-red-600{% endif %}">
+                    {% if facility.is_active %}Active{% else %}Inactive{% endif %}
+                </span>
+
+                <p class="text-sm text-gray-600">📍 {{ facility.location }}</p>
+                <p class="text-sm text-gray-600">👥 Capacity: {{ facility.capacity }}</p>
+
+            </div>
+        </div>
+
+        <div class="modal fade" id="imageModal" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered modal-xl modal-fullscreen-sm-down">
+
+                <div class="modal-content bg-black border-0 overflow-hidden rounded-0 rounded-sm-4">
+
+                    <!-- CLOSE -->
+                    <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3 z-3"
+                        data-bs-dismiss="modal"></button>
+
+                    <!-- IMAGE WRAPPER -->
+                    <div class="position-relative d-flex align-items-center justify-content-center"
+                        style="min-height: 60vh;">
+
+                        <img src="{{ facility.image.url }}" class="img-fluid"
+                            style="max-height: 85vh; object-fit: contain;">
+
+                        <!-- ACTION BAR -->
+                        <div class="position-absolute bottom-0 start-0 end-0 p-3
+                            d-flex justify-content-between align-items-center
+                            bg-dark bg-opacity-75">
+
+                            <span class="text-white small">
+                                Facility Image Preview
+                            </span>
+
+                            <!-- CHANGE IMAGE -->
+                            <form method="POST" enctype="multipart/form-data"
+                                action="{% url 'update_facility_image' facility.id %}">
+
+                                {% csrf_token %}
+
+                                <label class="btn btn-light btn-sm mb-0">
+                                    Change Image
+                                    <input type="file" name="image" hidden onchange="this.form.submit()">
+                                </label>
+
+                            </form>
+
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- DESCRIPTION -->
+        <div class="md:col-span-2 rounded-2xl border bg-white p-6 shadow-sm">
+
+            <h2 class="text-lg font-semibold text-gray-800 mb-3">
+                Description
+            </h2>
+
+            <p class="text-sm text-gray-600 leading-relaxed">
+                {{ facility.description|default:"No description provided." }}
+            </p>
+
+        </div>
+
+    </div>
+
+    <!-- GRID: SCHEDULE + TIMELINE -->
+    <div class="grid md:grid-cols-2 gap-6">
+
+        <!-- DAILY SCHEDULE -->
+        <div class="bg-white border rounded-2xl p-6 shadow-sm">
+
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">
+                Daily Schedule
+            </h2>
+
+            <div class="space-y-3 max-h-[420px] overflow-y-auto pr-2">
+
+                {% for r in reservations %}
+                <div class="flex items-start justify-between p-4 rounded-xl bg-gray-50 hover:bg-gray-100 transition">
+
+                    <div>
+                        <p class="text-sm font-medium text-gray-900">
+                            {{ r.user.username }}
+                        </p>
+
+                        <p class="text-xs text-gray-500 mt-1">
+                            {{ r.date }} • {{ r.start_time }} – {{ r.end_time }}
+                        </p>
+                    </div>
+
+                    <span class="text-xs px-3 py-1 rounded-full
+                        {% if r.status == 'approved' %}bg-green-100 text-green-700
+                        {% elif r.status == 'pending' %}bg-yellow-100 text-yellow-700
+                        {% else %}bg-red-100 text-red-700{% endif %}">
+                        {{ r.status }}
+                    </span>
+
+                </div>
+                {% empty %}
+                <p class="text-sm text-gray-500">No reservations yet.</p>
+                {% endfor %}
+
+            </div>
+        </div>
+
+        <!-- TIMELINE -->
+        <div class="bg-white border rounded-2xl p-6 shadow-sm">
+
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">
+                Reservation Timeline
+            </h2>
+
+            <div class="relative border-l border-gray-200 pl-5 space-y-6 max-h-[420px] overflow-y-auto">
+
+                {% for r in reservations %}
+                <div class="relative">
+
+                    <div class="absolute -left-2 top-1 w-3 h-3 rounded-full bg-blue-500"></div>
+
+                    <p class="text-sm font-medium text-gray-900">
+                        {{ r.user.username }}
+                    </p>
+
+                    <p class="text-xs text-gray-500 mt-1">
+                        {{ r.date }} • {{ r.start_time }} - {{ r.end_time }}
+                    </p>
+
+                    {% if r.notes %}
+                    <p class="text-xs text-gray-600 mt-1">
+                        {{ r.notes }}
+                    </p>
+                    {% endif %}
+
+                </div>
+                {% endfor %}
+
+            </div>
+        </div>
+
+    </div>
+
+    <!-- LIVE CHECKER -->
+    <div class="bg-white border rounded-2xl p-6 shadow-sm">
+
+        <h2 class="text-lg font-semibold text-gray-800 mb-4">
+            Live Availability Checker
+        </h2>
+
+        <div class="grid md:grid-cols-3 gap-3">
+
+            <input type="date" id="date"
+                class="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
+
+            <input type="time" id="start"
+                class="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
+
+            <input type="time" id="end"
+                class="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
+
+        </div>
+
+        <p id="result" class="text-sm mt-3 text-gray-600"></p>
+
+    </div>
+
+    <!-- ADMIN RESERVE -->
+    <div class="bg-white border rounded-2xl p-6 shadow-sm">
+
+        <h2 class="text-lg font-semibold text-gray-800 mb-4">
+            Admin Override Reservation
+        </h2>
+
+        <form method="POST" action="{% url 'admin_reserve_facility' facility.id %}">
+            {% csrf_token %}
+
+            <div class="grid md:grid-cols-2 gap-3">
+
+                <input type="number" name="user_id" placeholder="User ID" class="px-3 py-2 border rounded-xl">
+
+                <input type="date" name="date" class="px-3 py-2 border rounded-xl">
+
+                <input type="time" name="start_time" class="px-3 py-2 border rounded-xl">
+
+                <input type="time" name="end_time" class="px-3 py-2 border rounded-xl">
+
+            </div>
+
+            <textarea name="notes" placeholder="Notes" class="mt-3 w-full px-3 py-2 border rounded-xl"></textarea>
+
+            <button class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-xl transition">
+                Reserve Now
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+<!-- LIVE CHECK -->
+<script>
+    function checkAvailability() {
+
+        const date = document.getElementById("date").value;
+        const start = document.getElementById("start").value;
+        const end = document.getElementById("end").value;
+
+        if (!date || !start || !end) return;
+
+        fetch(`/admin/facility/{{ facility.id }}/availability/?date=${date}&start_time=${start}&end_time=${end}`)
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById("result").innerText =
+                    data.available ? "Available ✓" : "Not Available ✕";
+            });
+
+    }
+
+    ["date", "start", "end"].forEach(id => {
+        document.getElementById(id).addEventListener("change", checkAvailability);
+    });
+</script>
+
+{% endblock %}

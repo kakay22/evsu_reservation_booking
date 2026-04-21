@@ -1,350 +1,365 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{% block title %}Dashboard{% endblock %} | EVSU Reserve</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Dashboard{% endblock %} | EVSU Reserve</title>
 
-<script src="https://cdn.tailwindcss.com"></script>
-<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
-<style>
-body { background-color: #f9fafb; }
+    <style>
+        body {
+            background-color: #f9fafb;
+        }
 
-/* SIDEBAR ACTIVE */
-aside a.active {
-    background-color: #e0f2fe;
-    color: #0c4a6e;
-    font-weight: 500;
-}
+        /* SIDEBAR ACTIVE */
+        aside a.active {
+            background-color: #e0f2fe;
+            color: #0c4a6e;
+            font-weight: 500;
+        }
 
-/* MOBILE NAV */
-.mobile-nav {
-    position: fixed;
-    bottom: .6rem;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 92%;
-    backdrop-filter: blur(16px);
-    background: rgba(255,255,255,0.8);
-    border-radius: 1.2rem;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-    display: flex;
-    justify-content: space-around;
-    padding: .5rem;
-    z-index: 50;
-    transition: all .3s ease;
-}
+        /* MOBILE NAV */
+        .mobile-nav {
+            position: fixed;
+            bottom: .6rem;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 92%;
+            backdrop-filter: blur(16px);
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 1.2rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-around;
+            padding: .5rem;
+            z-index: 50;
+            transition: all .3s ease;
+        }
 
-.mobile-nav.hidden {
-    transform: translateX(-50%) translateY(120%);
-    opacity: 0;
-}
+        .mobile-nav.hidden {
+            transform: translateX(-50%) translateY(120%);
+            opacity: 0;
+        }
 
-/* HEADER */
-header {
-    backdrop-filter: blur(10px);
-}
+        /* HEADER */
+        header {
+            backdrop-filter: blur(10px);
+        }
 
-/* DROPDOWN */
-.dropdown {
-    transition: all .2s ease;
-}
-/* entrance animation */
-@keyframes navIn {
-    from {
-        opacity: 0;
-        transform: translate(-50%, 20px);
-    }
-    to {
-        opacity: 1;
-        transform: translate(-50%, 0);
-    }
-}
+        /* DROPDOWN */
+        .dropdown {
+            transition: all .2s ease;
+        }
 
-.animate-navIn {
-    animation: navIn 0.5s ease-out forwards;
-}
+        /* entrance animation */
+        @keyframes navIn {
+            from {
+                opacity: 0;
+                transform: translate(-50%, 20px);
+            }
 
-/* smooth item interaction */
-.nav-item {
-    transition: transform 0.2s ease, background 0.2s ease;
-}
+            to {
+                opacity: 1;
+                transform: translate(-50%, 0);
+            }
+        }
 
-.nav-item:active {
-    transform: scale(0.92);
-}
+        .animate-navIn {
+            animation: navIn 0.5s ease-out forwards;
+        }
 
-/* hover lift (mobile subtle, desktop harmless) */
-.nav-item:hover {
-    transform: translateY(-2px);
-}
+        /* smooth item interaction */
+        .nav-item {
+            transition: transform 0.2s ease, background 0.2s ease;
+        }
 
-/* active tab */
-.active-tab {
-    color: #2563eb;
-    background: #eff6ff;
-    border-radius: 14px;
-    transform: translateY(-2px);
-}
-/* taost */
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateX(20px); }
-    to { opacity: 1; transform: translateX(0); }
-}
+        .nav-item:active {
+            transform: scale(0.92);
+        }
 
-.animate-fadeIn {
-    animation: fadeIn 0.3s ease-out;
-}
-</style>
+        /* hover lift (mobile subtle, desktop harmless) */
+        .nav-item:hover {
+            transform: translateY(-2px);
+        }
+
+        /* active tab */
+        .active-tab {
+            color: #2563eb;
+            background: #eff6ff;
+            border-radius: 14px;
+            transform: translateY(-2px);
+        }
+
+        /* taost */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .animate-fadeIn {
+            animation: fadeIn 0.3s ease-out;
+        }
+    </style>
 </head>
 
 <body class="font-sans text-gray-800 flex">
 
     <!-- TOAST CONTAINER -->
-    <div id="toastContainer"
-     class="fixed top-5 right-5 space-y-2 z-[9999]"></div>
+    <div id="toastContainer" class="fixed top-5 right-5 space-y-2 z-[9999]"></div>
 
-<!-- SIDEBAR -->
-<aside class="hidden md:flex flex-col w-64 h-screen bg-white shadow-lg sticky top-0">
-    <div class="p-6 flex flex-col h-full">
+    <!-- SIDEBAR -->
+    <aside class="hidden md:flex flex-col w-64 h-screen bg-white shadow-lg sticky top-0">
+        <div class="p-6 flex flex-col h-full">
 
-        <!-- BRAND -->
-        <div class="mb-6 flex items-center gap-2">
-            <span class="material-icons text-3xl text-blue-600">event</span>
-            <h1 class="text-2xl font-bold">EVSU Reserve</h1>
-        </div>
-
-        <!-- USER -->
-        <div class="mb-6">
-            <p class="font-semibold">Welcome, {{ request.user.username }}</p>
-            <p class="text-sm text-gray-500">{{ request.user.role }}</p>
-        </div>
-
-        <!-- NAV -->
-        <nav class="flex-1 space-y-2">
-            <a href="{% url 'user_dashboard' %}" class="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-gray-100 {% if request.resolver_match.url_name == 'user_dashboard' %}active{% endif %}">
-                <span class="material-icons">dashboard</span> Dashboard
-            </a>
-
-            <a href="{% url 'my_reservations' %}" class="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-gray-100 {% if request.resolver_match.url_name == 'my_reservations' %}active{% endif %}">
-                <span class="material-icons">event_available</span> My Reservations
-            </a>
-
-            <a href="{% url 'facilities' %}" class="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-gray-100">
-                <span class="material-icons">meeting_room</span> Facilities
-            </a>
-
-            <a href="#" class="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-gray-100">
-                <span class="material-icons">settings</span> Settings
-            </a>
-        </nav>
-
-        <!-- LOGOUT -->
-        <button onclick="openLogoutModal()" class="mt-auto flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-red-50 text-red-600">
-            <span class="material-icons">logout</span> Logout
-        </button>
-    </div>
-</aside>
-
-<!-- MAIN WRAPPER -->
-<div class="flex-1 flex flex-col min-h-screen">
-
-    <!-- HEADER -->
-    <header class="sticky top-0 z-40 bg-white/70 border-b px-4 md:px-10 py-3 flex justify-between items-center">
-
-        <h2 class="text-lg font-semibold text-gray-800">Dashboard</h2>
-
-        <!-- RIGHT -->
-        <div class="flex items-center gap-3 relative">
-
-            <!-- NOTIFICATIONS -->
-            <button id="notifBtn" class="relative w-9 h-9 rounded-full bg-white border flex items-center justify-center">
-                <span class="material-icons text-[20px]">notifications</span>
-
-                {% if unread_notifications_count > 0 %}
-                <span class="absolute -top-1 -right-1 text-[10px] bg-red-500 text-white rounded-full px-1">
-                    {{ unread_notifications_count }}
-                </span>
-                {% endif %}
-            </button>
-
-            <!-- DROPDOWN -->
-            <div id="notifDropdown" class="hidden absolute right-0 top-12 w-80 bg-white rounded-xl shadow-lg border">
-                <div class="p-3 border-b font-semibold">Notifications</div>
-                <div id="notifList" class="p-3 text-sm text-gray-500">
-                    Loading...
-                </div>
+            <!-- BRAND -->
+            <div class="mb-6 flex items-center gap-2">
+                <span class="material-icons text-3xl text-blue-600">event</span>
+                <h1 class="text-2xl font-bold">EVSU Reserve</h1>
             </div>
 
-            <!-- PROFILE -->
-            <div class="relative">
-                <button id="profileBtn">
-                    <div class="w-9 h-9 bg-blue-600 text-white rounded-full flex items-center justify-center">
-                        {{ request.user.username|slice:":1"|upper }}
-                    </div>
+            <!-- USER -->
+            <div class="mb-6">
+                <p class="font-semibold">Welcome, {{ request.user.username }}</p>
+                <p class="text-sm text-gray-500">{{ request.user.role }}</p>
+            </div>
+
+            <!-- NAV -->
+            <nav class="flex-1 space-y-2">
+                <a href="{% url 'user_dashboard' %}"
+                    class="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-gray-100 {% if request.resolver_match.url_name == 'user_dashboard' %}active{% endif %}">
+                    <span class="material-icons">dashboard</span> Dashboard
+                </a>
+
+                <a href="{% url 'my_reservations' %}"
+                    class="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-gray-100 {% if request.resolver_match.url_name == 'my_reservations' %}active{% endif %}">
+                    <span class="material-icons">event_available</span> My Reservations
+                </a>
+
+                <a href="{% url 'facilities' %}" class="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-gray-100">
+                    <span class="material-icons">meeting_room</span> Facilities
+                </a>
+
+                <a href="#" class="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-gray-100">
+                    <span class="material-icons">settings</span> Settings
+                </a>
+            </nav>
+
+            <!-- LOGOUT -->
+            <button onclick="openLogoutModal()"
+                class="mt-auto flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-red-50 text-red-600">
+                <span class="material-icons">logout</span> Logout
+            </button>
+        </div>
+    </aside>
+
+    <!-- MAIN WRAPPER -->
+    <div class="flex-1 flex flex-col min-h-screen">
+
+        <!-- HEADER -->
+        <header class="sticky top-0 z-40 bg-white/70 border-b px-4 md:px-10 py-3 flex justify-between items-center">
+
+            <h2 class="text-lg font-semibold text-gray-800">Dashboard</h2>
+
+            <!-- RIGHT -->
+            <div class="flex items-center gap-3 relative">
+
+                <!-- NOTIFICATIONS -->
+                <button id="notifBtn"
+                    class="relative w-9 h-9 rounded-full bg-white border flex items-center justify-center">
+                    <span class="material-icons text-[20px]">notifications</span>
+
+                    {% if unread_notifications_count > 0 %}
+                    <span class="absolute -top-1 -right-1 text-[10px] bg-red-500 text-white rounded-full px-1">
+                        {{ unread_notifications_count }}
+                    </span>
+                    {% endif %}
                 </button>
 
-                <div id="profileDropdown" class="hidden absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-lg p-3">
-                    <p class="text-sm font-medium">{{ request.user.username }}</p>
-                    <p class="text-xs text-gray-500 mb-2">{{ request.user.email }}</p>
-
-                    <button onclick="openLogoutModal()" class="w-full text-left text-red-600 hover:bg-red-50 px-3 py-2 rounded-lg">
-                        Logout
-                    </button>
+                <!-- DROPDOWN -->
+                <div id="notifDropdown"
+                    class="hidden absolute right-0 top-12 w-80 bg-white rounded-xl shadow-lg border">
+                    <div class="p-3 border-b font-semibold">Notifications</div>
+                    <div id="notifList" class="p-3 text-sm text-gray-500">
+                        Loading...
+                    </div>
                 </div>
+
+                <!-- PROFILE -->
+                <div class="relative">
+                    <button id="profileBtn">
+                        <div class="w-9 h-9 bg-blue-600 text-white rounded-full flex items-center justify-center">
+                            {{ request.user.username|slice:":1"|upper }}
+                        </div>
+                    </button>
+
+                    <div id="profileDropdown"
+                        class="hidden absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-lg p-3">
+                        <p class="text-sm font-medium">{{ request.user.username }}</p>
+                        <p class="text-xs text-gray-500 mb-2">{{ request.user.email }}</p>
+
+                        <button onclick="openLogoutModal()"
+                            class="w-full text-left text-red-600 hover:bg-red-50 px-3 py-2 rounded-lg">
+                            Logout
+                        </button>
+                    </div>
+                </div>
+
             </div>
+        </header>
 
-        </div>
-    </header>
+        <!-- CONTENT -->
+        <main class="flex-1 p-6 md:p-10 pb-[5rem]">
+            {% block content %}{% endblock %}
+        </main>
 
-    <!-- CONTENT -->
-    <main class="flex-1 p-6 md:p-10 pb-[5rem]">
-        {% block content %}{% endblock %}
-    </main>
+    </div>
 
-</div>
-
-<!-- MOBILE NAV -->
-<div id="mobileNav"
-     class="md:hidden fixed bottom-4 left-1/2 -translate-x-1/2 w-[92%]
+    <!-- MOBILE NAV -->
+    <div id="mobileNav" class="md:hidden fixed bottom-4 left-1/2 -translate-x-1/2 w-[92%]
             bg-white/80 backdrop-blur-xl border border-gray-200
             shadow-lg rounded-2xl px-2 py-2 flex items-center justify-between
             opacity-0 translate-y-6 animate-navIn">
 
-    <!-- Dashboard -->
-    <a href="{% url 'user_dashboard' %}"
-       class="nav-item flex flex-col items-center justify-center w-full py-2 rounded-xl
+        <!-- Dashboard -->
+        <a href="{% url 'user_dashboard' %}" class="nav-item flex flex-col items-center justify-center w-full py-2 rounded-xl
        transition-all duration-300
        {% if request.resolver_match.url_name == 'user_dashboard' %}active-tab{% endif %}">
-        <span class="material-icons text-xl">dashboard</span>
-        <span class="text-[11px] mt-1">Home</span>
-    </a>
+            <span class="material-icons text-xl">dashboard</span>
+            <span class="text-[11px] mt-1">Home</span>
+        </a>
 
-    <!-- Reservations -->
-    <a href="{% url 'my_reservations' %}"
-       class="nav-item flex flex-col items-center justify-center w-full py-2 rounded-xl transition-all duration-300
+        <!-- Reservations -->
+        <a href="{% url 'my_reservations' %}" class="nav-item flex flex-col items-center justify-center w-full py-2 rounded-xl transition-all duration-300
        {% if request.resolver_match.url_name == 'my_reservations' %}active-tab{% endif %}">
-        <span class="material-icons text-xl">event_available</span>
-        <span class="text-[11px] mt-1">Bookings</span>
-    </a>
+            <span class="material-icons text-xl">event_available</span>
+            <span class="text-[11px] mt-1">Bookings</span>
+        </a>
 
-    <!-- Facilities -->
-    <a href="{% url 'facilities' %}"
-       class="nav-item flex flex-col items-center justify-center w-full py-2 rounded-xl transition-all duration-300
+        <!-- Facilities -->
+        <a href="{% url 'facilities' %}" class="nav-item flex flex-col items-center justify-center w-full py-2 rounded-xl transition-all duration-300
        {% if request.resolver_match.url_name == 'facilities' %}active-tab{% endif %}">
-        <span class="material-icons text-xl">meeting_room</span>
-        <span class="text-[11px] mt-1">Facilities</span>
-    </a>
+            <span class="material-icons text-xl">meeting_room</span>
+            <span class="text-[11px] mt-1">Facilities</span>
+        </a>
 
-    <!-- Settings -->
-    <a href="#"
-       class="nav-item flex flex-col items-center justify-center w-full py-2 rounded-xl text-gray-500 hover:text-blue-600">
-        <span class="material-icons text-xl">settings</span>
-        <span class="text-[11px] mt-1">Settings</span>
-    </a>
+        <!-- Settings -->
+        <a href="#"
+            class="nav-item flex flex-col items-center justify-center w-full py-2 rounded-xl text-gray-500 hover:text-blue-600">
+            <span class="material-icons text-xl">settings</span>
+            <span class="text-[11px] mt-1">Settings</span>
+        </a>
 
-    <!-- Logout -->
-    <button onclick="openLogoutModal()"
-        class="nav-item flex flex-col items-center justify-center w-full py-2 rounded-xl text-red-500">
-        <span class="material-icons text-xl">logout</span>
-        <span class="text-[11px] mt-1">Logout</span>
-    </button>
+        <!-- Logout -->
+        <button onclick="openLogoutModal()"
+            class="nav-item flex flex-col items-center justify-center w-full py-2 rounded-xl text-red-500">
+            <span class="material-icons text-xl">logout</span>
+            <span class="text-[11px] mt-1">Logout</span>
+        </button>
 
-</div>
+    </div>
 
-<!-- LOGOUT MODAL -->
-<div id="logoutModal" class="fixed inset-0 hidden items-center justify-center bg-black/40">
-    <div class="bg-white p-6 rounded-xl text-center w-80">
-        <h2 class="font-semibold mb-2">Confirm Logout</h2>
-        <p class="text-sm text-gray-500 mb-4">Are you sure?</p>
+    <!-- LOGOUT MODAL -->
+    <div id="logoutModal" class="fixed inset-0 hidden items-center justify-center bg-black/40">
+        <div class="bg-white p-6 rounded-xl text-center w-80">
+            <h2 class="font-semibold mb-2">Confirm Logout</h2>
+            <p class="text-sm text-gray-500 mb-4">Are you sure?</p>
 
-        <div class="flex gap-2">
-            <button onclick="closeLogoutModal()" class="flex-1 bg-gray-100 py-2 rounded-lg">Cancel</button>
-            <a href="{% url 'logout' %}" class="flex-1 bg-red-600 text-white py-2 rounded-lg text-center">Logout</a>
+            <div class="flex gap-2">
+                <button onclick="closeLogoutModal()" class="flex-1 bg-gray-100 py-2 rounded-lg">Cancel</button>
+                <a href="{% url 'logout' %}" class="flex-1 bg-red-600 text-white py-2 rounded-lg text-center">Logout</a>
+            </div>
         </div>
     </div>
-</div>
 
-<!-- SCRIPTS -->
-<script>
-// PROFILE DROPDOWN
-const profileBtn = document.getElementById("profileBtn");
-const profileDropdown = document.getElementById("profileDropdown");
+    <!-- SCRIPTS -->
+    <script>
+        // PROFILE DROPDOWN
+        const profileBtn = document.getElementById("profileBtn");
+        const profileDropdown = document.getElementById("profileDropdown");
 
-profileBtn.addEventListener("click", () => {
-    profileDropdown.classList.toggle("hidden");
-});
+        profileBtn.addEventListener("click", () => {
+            profileDropdown.classList.toggle("hidden");
+        });
 
-// NOTIFICATIONS
-const notifBtn = document.getElementById("notifBtn");
-const notifDropdown = document.getElementById("notifDropdown");
+        // NOTIFICATIONS
+        const notifBtn = document.getElementById("notifBtn");
+        const notifDropdown = document.getElementById("notifDropdown");
 
-notifBtn.addEventListener("click", () => {
-    notifDropdown.classList.toggle("hidden");
-});
+        notifBtn.addEventListener("click", () => {
+            notifDropdown.classList.toggle("hidden");
+        });
 
-// CLOSE OUTSIDE
-document.addEventListener("click", (e) => {
-    if (!profileBtn.contains(e.target)) profileDropdown.classList.add("hidden");
-    if (!notifBtn.contains(e.target)) notifDropdown.classList.add("hidden");
-});
+        // CLOSE OUTSIDE
+        document.addEventListener("click", (e) => {
+            if (!profileBtn.contains(e.target)) profileDropdown.classList.add("hidden");
+            if (!notifBtn.contains(e.target)) notifDropdown.classList.add("hidden");
+        });
 
-// NOTIFICATION SYSTEM ICONS
-function getIcon(type) {
+        // NOTIFICATION SYSTEM ICONS
+        function getIcon(type) {
 
-    switch (type) {
+            switch (type) {
 
-        case "reservation":
-            return `<span class="material-icons text-blue-500">event</span>`;
+                case "reservation":
+                    return `<span class="material-icons text-blue-500">event</span>`;
 
-        case "approval":
-            return `<span class="material-icons text-green-500">check_circle</span>`;
+                case "approval":
+                    return `<span class="material-icons text-green-500">check_circle</span>`;
 
-        case "rejection":
-            return `<span class="material-icons text-red-500">cancel</span>`;
+                case "rejection":
+                    return `<span class="material-icons text-red-500">cancel</span>`;
 
-        case "user":
-            return `<span class="material-icons text-purple-500">person</span>`;
+                case "user":
+                    return `<span class="material-icons text-purple-500">person</span>`;
 
-        default:
-            return `<span class="material-icons text-gray-400">notifications</span>`;
-    }
-}
+                default:
+                    return `<span class="material-icons text-gray-400">notifications</span>`;
+            }
+        }
 
-async function loadNotifications() {
+        async function loadNotifications() {
 
-    try {
-        const res = await fetch("/api/notifications/");
-        const data = await res.json();
+            try {
+                const res = await fetch("/api/notifications/");
+                const data = await res.json();
 
-        const desktopList = notifList;
-        const mobileList = document.getElementById("notifMobileList");
+                const desktopList = notifList;
+                const mobileList = document.getElementById("notifMobileList");
 
-        desktopList.innerHTML = "";
-        if (mobileList) mobileList.innerHTML = "";
+                desktopList.innerHTML = "";
+                if (mobileList) mobileList.innerHTML = "";
 
-        // ❌ EMPTY STATE
-        if (!data.notifications || data.notifications.length === 0) {
+                // ❌ EMPTY STATE
+                if (!data.notifications || data.notifications.length === 0) {
 
-            const emptyHTML = `
+                    const emptyHTML = `
                 <div class="flex flex-col items-center justify-center py-6 text-gray-400">
                     <span class="material-icons text-4xl mb-2">notifications_none</span>
                     <p class="text-sm">No notifications</p>
                 </div>
             `;
 
-            desktopList.innerHTML = emptyHTML;
-            if (mobileList) mobileList.innerHTML = emptyHTML;
-            return;
-        }
+                    desktopList.innerHTML = emptyHTML;
+                    if (mobileList) mobileList.innerHTML = emptyHTML;
+                    return;
+                }
 
-        // ✅ LOOP NOTIFICATIONS
-        data.notifications.forEach(n => {
+                // ✅ LOOP NOTIFICATIONS
+                data.notifications.forEach(n => {
 
-            const icon = getIcon(n.type); // reuse admin icon system
+                    const icon = getIcon(n.type); // reuse admin icon system
 
-            const itemHTML = `
+                    const itemHTML = `
                 <div class="flex items-start gap-3 px-3 py-2 hover:bg-gray-50 transition cursor-pointer rounded-lg">
 
                     <div class="mt-1 text-gray-600">
@@ -364,141 +379,142 @@ async function loadNotifications() {
                 </div>
             `;
 
-            // -------------------------
-            // DESKTOP
-            // -------------------------
-            const desktopItem = document.createElement("div");
-            desktopItem.innerHTML = itemHTML;
+                    // -------------------------
+                    // DESKTOP
+                    // -------------------------
+                    const desktopItem = document.createElement("div");
+                    desktopItem.innerHTML = itemHTML;
 
-            desktopItem.addEventListener("click", () => handleUserNotification(n));
+                    desktopItem.addEventListener("click", () => handleUserNotification(n));
 
-            desktopList.appendChild(desktopItem);
+                    desktopList.appendChild(desktopItem);
 
-            // -------------------------
-            // MOBILE
-            // -------------------------
-            if (mobileList) {
-                const mobileItem = document.createElement("div");
-                mobileItem.innerHTML = itemHTML;
+                    // -------------------------
+                    // MOBILE
+                    // -------------------------
+                    if (mobileList) {
+                        const mobileItem = document.createElement("div");
+                        mobileItem.innerHTML = itemHTML;
 
-                mobileItem.addEventListener("click", () => handleUserNotification(n));
+                        mobileItem.addEventListener("click", () => handleUserNotification(n));
 
-                mobileList.appendChild(mobileItem);
-            }
-        });
+                        mobileList.appendChild(mobileItem);
+                    }
+                });
 
-    } catch (err) {
-        console.error(err);
-        notifList.innerHTML = `
+            } catch (err) {
+                console.error(err);
+                notifList.innerHTML = `
             <p class="text-red-500 text-sm">Failed to load notifications</p>
         `;
-    }
-}
-
-loadNotifications();
-
-function getCookie(name) {
-    let cookieValue = null;
-
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
             }
         }
-    }
 
-    return cookieValue;
-}
+        loadNotifications();
 
-// USER NOTIFICATION ROUTING and mark as read
-function handleUserNotification(n) {
+        function getCookie(name) {
+            let cookieValue = null;
 
-    // mark as read
-    fetch(`/notifications/${n.id}/read/`, {
-        method: "POST",
-        headers: {
-            "X-CSRFToken": getCookie("csrftoken")
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+
+            return cookieValue;
         }
-    });
 
-    // USER ROUTING LOGIC
-    if (n.type === "reservation" && n.reservation_id) {
-        window.location.href = `/my-reservations/`;
-    }
+        // USER NOTIFICATION ROUTING and mark as read
+        function handleUserNotification(n) {
 
-    else if (n.type === "approval") {
-        window.location.href = `/my-reservations/`;
-    }
+            // mark as read
+            fetch(`/notifications/${n.id}/read/`, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": getCookie("csrftoken")
+                }
+            });
 
-    else {
-        console.log("No route:", n);
-    }
-}
+            // USER ROUTING LOGIC
+            if (n.type === "reservation" && n.reservation_id) {
+                window.location.href = `/my-reservations/`;
+            }
 
-// LOGOUT MODAL
-function openLogoutModal() {
-    document.getElementById("logoutModal").classList.remove("hidden");
-    document.getElementById("logoutModal").classList.add("flex");
-}
+            else if (n.type === "approval") {
+                window.location.href = `/my-reservations/`;
+            }
 
-function closeLogoutModal() {
-    document.getElementById("logoutModal").classList.add("hidden");
-}
+            else {
+                console.log("No route:", n);
+            }
+        }
 
-// SCROLL MOBILE NAV
-let lastScrollTop = 0;
-const mobileNav = document.getElementById("mobileNav");
+        // LOGOUT MODAL
+        function openLogoutModal() {
+            document.getElementById("logoutModal").classList.remove("hidden");
+            document.getElementById("logoutModal").classList.add("flex");
+        }
 
-window.addEventListener("scroll", () => {
-    let st = window.pageYOffset;
-    if (st > lastScrollTop) mobileNav.classList.add("hidden");
-    else mobileNav.classList.remove("hidden");
-    lastScrollTop = st;
-});
+        function closeLogoutModal() {
+            document.getElementById("logoutModal").classList.add("hidden");
+        }
 
-function showToast(message, type = "success") {
+        // SCROLL MOBILE NAV
+        let lastScrollTop = 0;
+        const mobileNav = document.getElementById("mobileNav");
 
-    const container = document.getElementById("toastContainer");
+        window.addEventListener("scroll", () => {
+            let st = window.pageYOffset;
+            if (st > lastScrollTop) mobileNav.classList.add("hidden");
+            else mobileNav.classList.remove("hidden");
+            lastScrollTop = st;
+        });
 
-    const toast = document.createElement("div");
+        function showToast(message, type = "success") {
 
-    const colors = {
-        success: "bg-green-500",
-        error: "bg-red-500",
-        info: "bg-blue-500",
-        warning: "bg-yellow-500"
-    };
+            const container = document.getElementById("toastContainer");
 
-    toast.className = `
+            const toast = document.createElement("div");
+
+            const colors = {
+                success: "bg-green-500",
+                error: "bg-red-500",
+                info: "bg-blue-500",
+                warning: "bg-yellow-500"
+            };
+
+            toast.className = `
         ${colors[type] || colors.success}
         text-white px-4 py-3 rounded-xl shadow-lg
         min-w-[250px] animate-fadeIn
         flex items-center justify-between gap-3
     `;
 
-    toast.innerHTML = `
+            toast.innerHTML = `
         <span class="text-sm">${message}</span>
         <button class="ml-2 text-white/80 hover:text-white"
                 onclick="this.parentElement.remove()">✕</button>
     `;
 
-    container.appendChild(toast);
+            container.appendChild(toast);
 
-    // auto remove
-    setTimeout(() => {
-        toast.style.opacity = "0";
-        toast.style.transform = "translateX(20px)";
-        toast.style.transition = "0.3s";
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
-}
-</script>
+            // auto remove
+            setTimeout(() => {
+                toast.style.opacity = "0";
+                toast.style.transform = "translateX(20px)";
+                toast.style.transition = "0.3s";
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+    </script>
 
 </body>
+
 </html>

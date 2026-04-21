@@ -644,21 +644,25 @@ def delete_user(request, user_id):
     return render(request, "admin/confirm_delete.html", {"user": user})
 
 # ---------- FACILITIES MANAGEMENT ----------
+from django.http import JsonResponse
+from django.shortcuts import render, redirect, get_object_or_404
+
+from django.contrib import messages
+
 @login_required
 @user_passes_test(is_admin)
 def admin_facilities(request):
 
-    # =====================
-    # CREATE FACILITY
-    # =====================
     if request.method == "POST":
 
         facility_id = request.POST.get("facility_id")
 
         if facility_id:
             facility = get_object_or_404(Facility, id=facility_id)
+            action = "updated"
         else:
             facility = Facility()
+            action = "created"
 
         facility.name = request.POST.get("name")
         facility.description = request.POST.get("description")
@@ -671,6 +675,9 @@ def admin_facilities(request):
 
         facility.save()
 
+        # ✅ Django message
+        messages.success(request, f"Facility successfully {action}!")
+
         return redirect("admin_facilities")
 
     facilities = Facility.objects.all().order_by("-id")
@@ -678,6 +685,80 @@ def admin_facilities(request):
     return render(request, "admin/admin_facilities.html", {
         "facilities": facilities
     })
+
+@login_required
+@user_passes_test(is_admin)
+def admin_facility_detail(request, id):
+    facility = get_object_or_404(Facility, id=id)
+
+    reservations = Reservation.objects.filter(
+        facility=facility
+    ).order_by("-date", "start_time")
+
+    return render(request, "admin/admin_facility_detail.html", {
+        "facility": facility,
+        "reservations": reservations
+    })
+
+@login_required
+@user_passes_test(is_admin)
+def facility_availability(request, id):
+    facility = get_object_or_404(Facility, id=id)
+
+    date = request.GET.get("date")
+    start = request.GET.get("start_time")
+    end = request.GET.get("end_time")
+
+    date_obj = datetime.strptime(date, "%Y-%m-%d").date()
+    start_obj = datetime.strptime(start, "%H:%M").time()
+    end_obj = datetime.strptime(end, "%H:%M").time()
+
+    conflict = Reservation.objects.filter(
+        facility=facility,
+        date=date_obj,
+        start_time__lt=end_obj,
+        end_time__gt=start_obj,
+        status="approved"
+    ).exists()
+
+    return JsonResponse({
+        "available": not conflict
+    })
+
+@login_required
+@user_passes_test(is_admin)
+def update_facility_image(request, id):
+    facility = get_object_or_404(Facility, id=id)
+
+    if request.method == "POST":
+        if request.FILES.get("image"):
+            facility.image = request.FILES["image"]
+            facility.save()
+
+            messages.success(request, "Facility image updated successfully!")
+
+    return redirect("admin_facility_detail", id=id)
+
+@login_required
+@user_passes_test(is_admin)
+def admin_reserve_facility(request, id):
+    facility = get_object_or_404(Facility, id=id)
+
+    if request.method == "POST":
+        Reservation.objects.create(
+            user_id=request.POST.get("user_id"),
+            facility=facility,
+            date=request.POST.get("date"),
+            start_time=request.POST.get("start_time"),
+            end_time=request.POST.get("end_time"),
+            status="approved",
+            notes=request.POST.get("notes", "")
+        )
+
+        messages.success(request, "Reservation created successfully!")
+        return redirect("admin_facility_detail", id=id)
+
+    return redirect("admin_facility_detail", id=id)
 
 # =========================
 # DELETE
@@ -687,6 +768,7 @@ def admin_facilities(request):
 def delete_facility(request, id):
     facility = get_object_or_404(Facility, id=id)
     facility.delete()
+    messages.success(request, "Facility deleted successfully!")
     return redirect("admin_facilities")
 
 #equipment management
@@ -718,6 +800,7 @@ def admin_equipments(request):
                 equipment.image = image
 
             equipment.save()
+            messages.success(request, "Equipment updated successfully!")
 
         else:
             # CREATE
@@ -729,6 +812,7 @@ def admin_equipments(request):
                 is_active=is_active,
                 image=image
             )
+            messages.success(request, "Equipment created successfully!")
 
         return redirect('admin_equipments')
 

@@ -36,9 +36,11 @@
             {% if messages %}
             <div class="space-y-2 mb-4">
                 {% for message in messages %}
+                {% if 'error' in message.tags %}
                 <div class="p-3 border-l-4 border-red-500 bg-red-50 text-red-700 rounded shadow-sm text-sm">
                     {{ message }}
                 </div>
+                {% endif %}
                 {% endfor %}
             </div>
             {% endif %}
@@ -105,22 +107,22 @@
     </div>
 </body>
 <script>
-function togglePassword(btn) {
+    function togglePassword(btn) {
 
-    const input = btn.parentElement.querySelector('input');
+        const input = btn.parentElement.querySelector('input');
 
-    if (!input) return;
+        if (!input) return;
 
-    const icon = btn.querySelector('span');
+        const icon = btn.querySelector('span');
 
-    if (input.type === "password") {
-        input.type = "text";
-        icon.innerText = "visibility_off";
-    } else {
-        input.type = "password";
-        icon.innerText = "visibility";
+        if (input.type === "password") {
+            input.type = "text";
+            icon.innerText = "visibility_off";
+        } else {
+            input.type = "password";
+            icon.innerText = "visibility";
+        }
     }
-}
 </script>
 
 </html>

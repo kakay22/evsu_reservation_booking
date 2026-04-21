@@ -7,7 +7,7 @@
 <!-- chartjs -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
+<div class="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-6 space-y-8">
 
     <!-- HEADER -->
     <div>
@@ -18,26 +18,78 @@
     </div>
 
     <!-- STATS -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-2">
 
-        <div class="bg-white rounded-2xl p-4 shadow-sm">
-            <p class="text-xs text-gray-500">Users</p>
-            <h3 class="text-xl font-semibold">{{ total_users }}</h3>
+        <!-- USERS -->
+        <div class="bg-white rounded-2xl p-5 shadow-sm border hover:shadow-md transition group">
+
+            <div class="flex items-center justify-between">
+
+                <div>
+                    <p class="text-xs text-gray-500">Users</p>
+                    <h3 class="text-2xl font-semibold text-gray-900">{{ total_users }}</h3>
+                </div>
+
+                <div
+                    class="w-10 h-10 flex items-center justify-center rounded-xl bg-blue-50 text-blue-600 group-hover:scale-110 transition">
+                    <span class="material-icons">people</span>
+                </div>
+
+            </div>
         </div>
 
-        <div class="bg-white rounded-2xl p-4 shadow-sm">
-            <p class="text-xs text-gray-500">Facilities</p>
-            <h3 class="text-xl font-semibold">{{ total_facilities }}</h3>
+        <!-- FACILITIES -->
+        <div class="bg-white rounded-2xl p-5 shadow-sm border hover:shadow-md transition group">
+
+            <div class="flex items-center justify-between">
+
+                <div>
+                    <p class="text-xs text-gray-500">Facilities</p>
+                    <h3 class="text-2xl font-semibold text-gray-900">{{ total_facilities }}</h3>
+                </div>
+
+                <div
+                    class="w-10 h-10 flex items-center justify-center rounded-xl bg-green-50 text-green-600 group-hover:scale-110 transition">
+                    <span class="material-icons">business</span>
+                </div>
+
+            </div>
         </div>
 
-        <div class="bg-white rounded-2xl p-4 shadow-sm">
-            <p class="text-xs text-gray-500">Pending</p>
-            <h3 class="text-xl font-semibold">{{ pending_reservations }}</h3>
+        <!-- PENDING -->
+        <div class="bg-white rounded-2xl p-5 shadow-sm border hover:shadow-md transition group">
+
+            <div class="flex items-center justify-between">
+
+                <div>
+                    <p class="text-xs text-gray-500">Pending</p>
+                    <h3 class="text-2xl font-semibold text-gray-900">{{ pending_reservations }}</h3>
+                </div>
+
+                <div
+                    class="w-10 h-10 flex items-center justify-center rounded-xl bg-yellow-50 text-yellow-600 group-hover:scale-110 transition">
+                    <span class="material-icons">schedule</span>
+                </div>
+
+            </div>
         </div>
 
-        <div class="bg-white rounded-2xl p-4 shadow-sm">
-            <p class="text-xs text-gray-500">Approved</p>
-            <h3 class="text-xl font-semibold">{{ approved_reservations }}</h3>
+        <!-- APPROVED -->
+        <div class="bg-white rounded-2xl p-5 shadow-sm border hover:shadow-md transition group">
+
+            <div class="flex items-center justify-between">
+
+                <div>
+                    <p class="text-xs text-gray-500">Approved</p>
+                    <h3 class="text-2xl font-semibold text-gray-900">{{ approved_reservations }}</h3>
+                </div>
+
+                <div
+                    class="w-10 h-10 flex items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 group-hover:scale-110 transition">
+                    <span class="material-icons">check_circle</span>
+                </div>
+
+            </div>
         </div>
 
     </div>
@@ -302,96 +354,96 @@
 {{ chart_data|json_script:"chart-data" }}
 
 <script>
-document.addEventListener("DOMContentLoaded", function () {
+    document.addEventListener("DOMContentLoaded", function () {
 
-    const ctx = document.getElementById('reservationChart');
-    const labelsEl = document.getElementById('chart-labels');
-    const dataEl = document.getElementById('chart-data');
+        const ctx = document.getElementById('reservationChart');
+        const labelsEl = document.getElementById('chart-labels');
+        const dataEl = document.getElementById('chart-data');
 
-    // 🚨 SAFETY CHECK (prevents your previous error)
-    if (!ctx || !labelsEl || !dataEl) return;
+        // 🚨 SAFETY CHECK (prevents your previous error)
+        if (!ctx || !labelsEl || !dataEl) return;
 
-    // ✅ PARSE DATA SAFELY
-    const labels = JSON.parse(labelsEl.textContent);
-    const data = JSON.parse(dataEl.textContent);
+        // ✅ PARSE DATA SAFELY
+        const labels = JSON.parse(labelsEl.textContent);
+        const data = JSON.parse(dataEl.textContent);
 
-    // 🎯 CREATE CHART INSTANCE
-    const chart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Reservations',
-                data: data,
+        // 🎯 CREATE CHART INSTANCE
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Reservations',
+                    data: data,
 
-                // 💎 PREMIUM LOOK
-                tension: 0.45,
-                fill: true,
-                borderWidth: 2,
-                pointRadius: 4,
-                pointHoverRadius: 6,
+                    // 💎 PREMIUM LOOK
+                    tension: 0.45,
+                    fill: true,
+                    borderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
 
-                // smooth line animation
-                cubicInterpolationMode: 'monotone'
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-
-            animation: {
-                duration: 900,
-                easing: 'easeOutQuart'
+                    // smooth line animation
+                    cubicInterpolationMode: 'monotone'
+                }]
             },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
 
-            plugins: {
-                legend: {
-                    display: false
+                animation: {
+                    duration: 900,
+                    easing: 'easeOutQuart'
                 },
 
-                tooltip: {
-                    mode: 'index',
-                    intersect: false,
-                }
-            },
-
-            interaction: {
-                mode: 'nearest',
-                axis: 'x',
-                intersect: false
-            },
-
-            scales: {
-                x: {
-                    grid: {
+                plugins: {
+                    legend: {
                         display: false
                     },
-                    ticks: {
-                        color: "#6B7280"
+
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
                     }
                 },
-                y: {
-                    grid: {
-                        color: 'rgba(0,0,0,0.05)'
+
+                interaction: {
+                    mode: 'nearest',
+                    axis: 'x',
+                    intersect: false
+                },
+
+                scales: {
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            color: "#6B7280"
+                        }
                     },
-                    ticks: {
-                        stepSize: 1,
-                        color: "#6B7280"
+                    y: {
+                        grid: {
+                            color: 'rgba(0,0,0,0.05)'
+                        },
+                        ticks: {
+                            stepSize: 1,
+                            color: "#6B7280"
+                        }
                     }
                 }
             }
-        }
+        });
+
+        // 🚀 OPTIONAL: expose chart globally (for future updates without reload)
+        window.reservationChart = chart;
+
     });
-
-    // 🚀 OPTIONAL: expose chart globally (for future updates without reload)
-    window.reservationChart = chart;
-
-});
 </script>
 <script>
-function changeChart(type) {
-    window.location.href = `?chart=${type}`;
-}
+    function changeChart(type) {
+        window.location.href = `?chart=${type}`;
+    }
 </script>
 
 <!-- scroll position memory -->

@@ -20,20 +20,38 @@
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
         {% for facility in facilities %}
-        <div class="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden">
+        <div
+            class="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden">
 
             <!-- IMAGE -->
-            <div class="relative h-48 overflow-hidden">
+            <div class="relative h-48 overflow-hidden cursor-pointer group"
+                onclick="openImageModal('{{ facility.image.url|default:'/static/images/default_facility.png' }}')">
+
                 {% if facility.image %}
-                    <img src="{{ facility.image.url }}"
-                         class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                <img src="{{ facility.image.url }}"
+                    class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
                 {% else %}
-                    <img src="/static/images/default_facility.png"
-                         class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                <img src="/static/images/default_facility.png"
+                    class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
                 {% endif %}
 
                 <!-- overlay -->
                 <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+            </div>
+
+            <!-- IMAGE VIEWER MODAL -->
+            <div id="imageModal"
+                class="fixed inset-0 z-50 hidden items-center justify-center bg-black/90 backdrop-blur-sm transition-opacity duration-300">
+
+                <!-- CLOSE BUTTON -->
+                <button onclick="closeImageModal()"
+                    class="absolute top-5 right-5 text-white text-3xl bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full w-12 h-12 flex items-center justify-center transition">
+                    ✕
+                </button>
+
+                <!-- IMAGE -->
+                <img id="modalImage"
+                    class="max-w-[95%] max-h-[90%] rounded-xl shadow-2xl transform scale-95 opacity-0 transition duration-300">
             </div>
 
             <!-- CONTENT -->
@@ -53,7 +71,7 @@
 
                 <!-- ACTION -->
                 <a href="{% url 'facility_schedule_page' facility.id %}"
-                class="mt-4 w-full group flex items-center justify-center gap-2 bg-gray-900 text-white py-2.5 rounded-xl hover:bg-black transition shadow-sm hover:shadow-md">
+                    class="mt-4 w-full group flex items-center justify-center gap-2 bg-gray-900 text-white py-2.5 rounded-xl hover:bg-black transition shadow-sm hover:shadow-md">
 
                     <span class="material-icons text-sm group-hover:scale-110 transition">
                         calendar_month
@@ -79,16 +97,11 @@
 <!-- ===================================================== -->
 <!-- PREMIUM BOOKING MODAL -->
 <!-- ===================================================== -->
-<div
-    x-data="{ openModal: false, selectedFacility: null }"
-    x-show="openModal"
-    x-transition
+<div x-data="{ openModal: false, selectedFacility: null }" x-show="openModal" x-transition
     class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
 
     <!-- MODAL -->
-    <div
-        @click.away="openModal = false"
-        class="bg-white w-full max-w-xl rounded-2xl shadow-2xl p-6 space-y-6">
+    <div @click.away="openModal = false" class="bg-white w-full max-w-xl rounded-2xl shadow-2xl p-6 space-y-6">
 
         <!-- HEADER -->
         <div class="flex justify-between items-center">
@@ -101,8 +114,7 @@
                 </p>
             </div>
 
-            <button @click="openModal = false"
-                class="text-gray-400 hover:text-gray-700 text-2xl">
+            <button @click="openModal = false" class="text-gray-400 hover:text-gray-700 text-2xl">
                 &times;
             </button>
         </div>
@@ -116,7 +128,8 @@
             <!-- DATE -->
             <div>
                 <label class="text-sm text-gray-600">Date</label>
-                {{ form.date|add_class:"w-full border rounded-xl px-4 py-2 focus:ring-2 focus:ring-gray-900 outline-none" }}
+                {{ form.date|add_class:"w-full border rounded-xl px-4 py-2 focus:ring-2 focus:ring-gray-900
+                outline-none" }}
             </div>
 
             <!-- TIME GRID -->
@@ -124,12 +137,14 @@
 
                 <div>
                     <label class="text-sm text-gray-600">Start Time</label>
-                    {{ form.start_time|add_class:"w-full border rounded-xl px-4 py-2 focus:ring-2 focus:ring-gray-900 outline-none" }}
+                    {{ form.start_time|add_class:"w-full border rounded-xl px-4 py-2 focus:ring-2 focus:ring-gray-900
+                    outline-none" }}
                 </div>
 
                 <div>
                     <label class="text-sm text-gray-600">End Time</label>
-                    {{ form.end_time|add_class:"w-full border rounded-xl px-4 py-2 focus:ring-2 focus:ring-gray-900 outline-none" }}
+                    {{ form.end_time|add_class:"w-full border rounded-xl px-4 py-2 focus:ring-2 focus:ring-gray-900
+                    outline-none" }}
                 </div>
 
             </div>
@@ -137,20 +152,19 @@
             <!-- NOTES -->
             <div>
                 <label class="text-sm text-gray-600">Notes</label>
-                {{ form.notes|add_class:"w-full border rounded-xl px-4 py-2 focus:ring-2 focus:ring-gray-900 outline-none" }}
+                {{ form.notes|add_class:"w-full border rounded-xl px-4 py-2 focus:ring-2 focus:ring-gray-900
+                outline-none" }}
             </div>
 
             <!-- BUTTONS -->
             <div class="flex justify-end gap-2 pt-2">
 
-                <button type="button"
-                        @click="openModal = false"
-                        class="px-4 py-2 rounded-xl border hover:bg-gray-100 transition">
+                <button type="button" @click="openModal = false"
+                    class="px-4 py-2 rounded-xl border hover:bg-gray-100 transition">
                     Cancel
                 </button>
 
-                <button type="submit"
-                        class="px-5 py-2 rounded-xl bg-gray-900 text-white hover:bg-black transition">
+                <button type="submit" class="px-5 py-2 rounded-xl bg-gray-900 text-white hover:bg-black transition">
                     Confirm Booking
                 </button>
 
@@ -164,15 +178,65 @@
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 
 <style>
-/* subtle premium animation */
-@keyframes fadeIn {
-    from { opacity: 0; transform: scale(0.96); }
-    to { opacity: 1; transform: scale(1); }
-}
+    /* subtle premium animation */
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: scale(0.96);
+        }
 
-[x-show] {
-    animation: fadeIn 0.2s ease;
-}
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    [x-show] {
+        animation: fadeIn 0.2s ease;
+    }
 </style>
+
+<!--Image Fullscreen View-->
+<script>
+    function openImageModal(src) {
+        const modal = document.getElementById("imageModal");
+        const img = document.getElementById("modalImage");
+
+        img.src = src;
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+
+        // animate in
+        setTimeout(() => {
+            img.classList.remove("scale-95", "opacity-0");
+            img.classList.add("scale-100", "opacity-100");
+        }, 50);
+    }
+
+    function closeImageModal() {
+        const modal = document.getElementById("imageModal");
+        const img = document.getElementById("modalImage");
+
+        // animate out
+        img.classList.add("scale-95", "opacity-0");
+
+        setTimeout(() => {
+            modal.classList.add("hidden");
+            modal.classList.remove("flex");
+        }, 200);
+    }
+
+    // close when clicking outside image
+    document.getElementById("imageModal").addEventListener("click", function (e) {
+        if (e.target.id === "imageModal") {
+            closeImageModal();
+        }
+    });
+
+    // ESC key support (premium feel)
+    document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape") closeImageModal();
+    });
+</script>
 
 {% endblock %}

@@ -29,7 +29,11 @@ urlpatterns = [
 
     path('admin_dashboard/', views.admin_dashboard, name='admin_dashboard'),
     path('admin_facilities/', views.admin_facilities, name='admin_facilities'),
-    path('admin/facility/delete/<int:id>/', views.delete_facility, name='delete_facility'),
+    path('admin_facility_detail/<int:id>/', views.admin_facility_detail, name='admin_facility_detail'),
+    path('update_facility_image/<int:id>/', views.update_facility_image, name='update_facility_image'),
+    path('admin/facility/<int:id>/availability/', views.facility_availability, name='facility_availability'),
+    path('admin/facility/<int:id>/reserve/', views.admin_reserve_facility, name='admin_reserve_facility'),
+    path('delete_facility/<int:id>/', views.delete_facility, name='delete_facility'),
     path('admin_equipments/', views.admin_equipments, name='admin_equipments'),
     path('admin_equipment/delete/<int:id>/', views.delete_equipment, name='delete_equipment'),
     path('admin_users/', views.admin_users, name='admin_users'),
