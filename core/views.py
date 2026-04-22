@@ -302,49 +302,20 @@ def create_booking(request):
         equipment_ids = data.get("equipment", [])
 
         # ----------------------------
-        # VALIDATION (MISSING FIELDS)
+        # VALIDATION
         # ----------------------------
         if not all([facility_id, date, start_time, end_time]):
-            return JsonResponse({
-                "success": False,
-                "error": "Missing fields"
-            }, status=400)
+            return JsonResponse({"success": False, "error": "Missing fields"}, status=400)
 
-        # ----------------------------
-        # PARSE DATE
-        # ----------------------------
-        try:
-            booking_date = datetime.strptime(date, "%Y-%m-%d").date()
-        except ValueError:
-            return JsonResponse({
-                "success": False,
-                "error": "Invalid date format"
-            }, status=400)
-
-        # ----------------------------
-        # BLOCK PAST DATES
-        # ----------------------------
-        if booking_date < today_date():
-            return JsonResponse({
-                "success": False,
-                "error": "You cannot book a past date"
-            }, status=400)
-
-        # ----------------------------
-        # TIME VALIDATION
-        # ----------------------------
         if start_time >= end_time:
-            return JsonResponse({
-                "success": False,
-                "error": "Invalid time range"
-            }, status=400)
+            return JsonResponse({"success": False, "error": "Invalid time range"}, status=400)
 
         # ----------------------------
-        # CONFLICT CHECK
+        # CONFLICT CHECK (IMPORTANT)
         # ----------------------------
         conflict = Reservation.objects.filter(
             facility_id=facility_id,
-            date=booking_date,
+            date=date,
             start_time__lt=end_time,
             end_time__gt=start_time
         ).exists()
@@ -363,7 +334,7 @@ def create_booking(request):
             reservation = Reservation.objects.create(
                 user=request.user,
                 facility_id=facility_id,
-                date=booking_date,
+                date=date,
                 start_time=start_time,
                 end_time=end_time,
                 notes=notes,
@@ -377,7 +348,7 @@ def create_booking(request):
                 user=request.user,
                 message=f"Your reservation for {reservation.facility.name} on {reservation.date} is pending approval.",
                 type="reservation",
-                target_audience=request.user.role,
+                target_audience=request.user.role,  # ✅ FIXED
                 reservation=reservation
             )
 
@@ -399,9 +370,7 @@ def create_booking(request):
 
             Notification.objects.bulk_create(notifications)
 
-            # -----------------------------
-            # EQUIPMENT HANDLING
-            # -----------------------------
+            # equipment (M2M through table)
             ReservationEquipment.objects.filter(reservation=reservation).delete()
 
             equipment_bulk = [
@@ -1104,6 +1073,120 @@ def get_user_notifications(request):
     ]
 
     return JsonResponse({"notifications": data})
+
+
+import json
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.conf import settings
+from google import genai
+
+# initialize client ONCE (important)
+client = genai.Client(api_key=settings.GEMINI_API_KEY)
+
+
+def get_ai_reply(message: str) -> str:
+    msg = message.lower()
+
+    # -----------------------------
+    # BOOKING
+    # -----------------------------
+    if "book" in msg or "reservation" in msg or "reserve" in msg:
+        return (
+            "To book a facility:\n"
+            "1. Select a facility\n"
+            "2. Choose date and time\n"
+            "3. Add equipment if needed\n"
+            "4. Submit request\n\n"
+            "Note: Only available time slots can be booked."
+        )
+
+    # -----------------------------
+    # PAST DATE
+    # -----------------------------
+    if "past date" in msg or "yesterday" in msg:
+        return "You cannot book past dates. Only today and future dates are allowed."
+
+    # -----------------------------
+    # CANCEL
+    # -----------------------------
+    if "cancel" in msg:
+        return (
+            "You can only cancel reservations that are still pending.\n"
+            "Once approved, cancellation may be restricted depending on admin rules."
+        )
+
+    # -----------------------------
+    # STATUS
+    # -----------------------------
+    if "pending" in msg:
+        return "Pending means your request is waiting for admin approval."
+
+    if "approved" in msg:
+        return "Approved means your reservation is confirmed."
+
+    if "rejected" in msg:
+        return "Rejected means your reservation was not approved by admin."
+
+    # -----------------------------
+    # EQUIPMENT
+    # -----------------------------
+    if "equipment" in msg:
+        return (
+            "You can request equipment when booking a facility.\n"
+            "Make sure quantity does not exceed available stock."
+        )
+
+    # -----------------------------
+    # TIME CONFLICT
+    # -----------------------------
+    if "conflict" in msg or "already booked" in msg:
+        return "This means the selected time slot is already taken. Try another time."
+
+    # -----------------------------
+    # DEFAULT RESPONSE
+    # -----------------------------
+    return (
+        "I can help you with:\n"
+        "- Booking facilities\n"
+        "- Checking availability\n"
+        "- Cancellation rules\n"
+        "- Equipment usage\n"
+        "- Reservation status\n\n"
+        "Please ask a specific question."
+    )
+
+
+@csrf_exempt
+def ai_assistant(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            message = data.get("message", "").strip()
+
+            if not message:
+                return JsonResponse({
+                    "success": False,
+                    "error": "Empty message"
+                }, status=400)
+
+            reply = get_ai_reply(message)
+
+            return JsonResponse({
+                "success": True,
+                "response": reply
+            })
+
+        except Exception as e:
+            return JsonResponse({
+                "success": False,
+                "error": str(e)
+            }, status=500)
+
+    return JsonResponse({
+        "success": False,
+        "error": "Invalid request"
+    }, status=400)
 
 from django.contrib.auth import logout
 

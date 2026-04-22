@@ -51,5 +51,8 @@ urlpatterns = [
     path('notifications/<int:id>/read/', views.mark_notification_as_read, name='mark_notification_as_read'),
     # path('notifications/<int:id>/read/', views.mark_single_notification_read, name='mark_single_notification_read'),
 
+    # AI Assistant
+    path("ai-assistant/", views.ai_assistant, name="ai_assistant"),
+
     path('logout/', views.logout_view, name='logout'),
 ]

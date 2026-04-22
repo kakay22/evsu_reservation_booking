@@ -382,6 +382,151 @@
         </div>
     </section>
 
+    <!-- 🤖 AI FLOATING ASSISTANT -->
+    <div id="aiAssistant" class="fixed bottom-5 right-5 z-50">
+
+        <!-- CHAT BUTTON -->
+        <button onclick="toggleAI()"
+            class="bg-black text-white w-14 h-14 rounded-full shadow-xl flex items-center justify-center hover:scale-110 transition">
+            <span class="material-icons">smart_toy</span>
+        </button>
+
+        <!-- CHAT PANEL -->
+        <div id="aiPanel"
+            class="hidden mt-3 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden">
+
+            <!-- HEADER -->
+            <div class="bg-black text-white px-4 py-3 flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <span class="material-icons text-sm">smart_toy</span>
+                    <span class="text-sm font-medium">AI Assistant</span>
+                </div>
+                <button onclick="toggleAI()" class="text-white text-lg">&times;</button>
+            </div>
+
+            <!-- MESSAGES -->
+            <div id="aiMessages" class="p-3 h-64 overflow-y-auto space-y-2 text-sm bg-gray-50">
+
+                <!-- Default message -->
+                <div class="bg-gray-200 text-gray-800 px-3 py-2 rounded-lg w-fit">
+                    Hi! 👋 How can I help you with reservations?
+                </div>
+
+            </div>
+
+            <!-- INPUT -->
+            <div class="p-2 border-t flex gap-2">
+                <input id="aiInput" type="text" placeholder="Ask something..."
+                    class="flex-1 border rounded-lg px-3 py-2 text-sm outline-none">
+
+                <button id="aiSendBtn" onclick="sendAIMessage()" class="bg-black text-white px-3 rounded-lg text-sm">
+                    Send
+                </button>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        let isSending = false;
+
+        function toggleAI() {
+            const panel = document.getElementById("aiPanel");
+            panel.classList.toggle("hidden");
+        }
+
+        async function sendAIMessage() {
+            if (isSending) return; // 🚫 prevent spam
+
+            const input = document.getElementById("aiInput");
+            const messages = document.getElementById("aiMessages");
+            const sendBtn = document.getElementById("aiSendBtn");
+
+            const text = input.value.trim();
+            if (!text) return;
+
+            isSending = true;
+            sendBtn.disabled = true;
+
+            // USER MESSAGE
+            const userMsg = document.createElement("div");
+            userMsg.className = "bg-black text-white px-3 py-2 rounded-lg w-fit ml-auto";
+            userMsg.innerText = text;
+            messages.appendChild(userMsg);
+
+            input.value = "";
+
+            // LOADING MESSAGE
+            const loading = document.createElement("div");
+            loading.className = "bg-gray-200 px-3 py-2 rounded-lg w-fit text-gray-500";
+            loading.innerText = "Thinking...";
+            messages.appendChild(loading);
+
+            messages.scrollTop = messages.scrollHeight;
+
+            try {
+                const res = await fetch("{% url 'ai_assistant' %}", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": getCookie("csrftoken")
+                    },
+                    body: JSON.stringify({ message: text })
+                });
+
+                const data = await res.json();
+
+                loading.remove();
+
+                const aiMsg = document.createElement("div");
+                aiMsg.className = "bg-gray-200 text-gray-800 px-3 py-2 rounded-lg w-fit";
+
+                if (res.ok && data.success) {
+                    aiMsg.innerText = data.response;
+                } else {
+                    aiMsg.innerText = data.error || "Unable to get response from AI.";
+                }
+
+                messages.appendChild(aiMsg);
+
+            } catch (err) {
+                loading.remove();
+
+                const errorMsg = document.createElement("div");
+                errorMsg.className = "bg-red-100 text-red-600 px-3 py-2 rounded-lg w-fit";
+                errorMsg.innerText = "Network error. Please try again.";
+
+                messages.appendChild(errorMsg);
+                console.error("AI ERROR:", err);
+
+            } finally {
+                isSending = false;
+                sendBtn.disabled = false;
+                messages.scrollTop = messages.scrollHeight;
+            }
+        }
+
+        function getCookie(name) {
+            let cookieValue = null;
+
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+
+            return cookieValue;
+        }
+    </script>
+
     <!-- FOOTER -->
     <footer class="text-center py-6 text-gray-500 text-sm">
         © 2026 EVSU Reservation System
@@ -418,6 +563,8 @@
 
     <!-- Click pulse -->
     <script src="{% static 'js/pulse.js' %}"></script>
+
+
 </body>
 
 </html>

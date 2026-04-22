@@ -90,6 +90,9 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static')
 ]
 
+
+GEMINI_API_KEY = "AIzaSyDSBkXEuxMT8W46CAUjuFCfhaRrOR28fJE"
+
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
