@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 
 from .forms import CustomUserCreationForm, CustomAuthenticationForm
-from .models import Reservation, Facility, ReservationEquipment, Equipment, Notification
+from .models import Reservation, Facility, ReservationEquipment, Equipment, Notification, ReservationStatusLog
 from django.db import IntegrityError
 from allauth.socialaccount.models import SocialApp
 
@@ -202,6 +202,90 @@ def my_reservations(request):
 
     return render(request, 'user/my_reservations.html', context)
 
+def user_reservation_detail(request, id):
+    reservation = get_object_or_404(
+        Reservation.objects.select_related('facility', 'user'),
+        id=id,
+        user=request.user
+    )
+
+    return render(request, "user/user_reservation_detail.html", {
+        "reservation": reservation
+    })
+
+def user_edit_reservation(request, id):
+    reservation = get_object_or_404(Reservation, id=id, user=request.user)
+
+    data = json.loads(request.body)
+
+    form = ReservationForm(data, instance=reservation)
+
+    if form.is_valid():
+        form.save()
+
+        return JsonResponse({
+            "success": True,
+            "message": "Reservation updated successfully"
+        })
+
+    return JsonResponse({
+        "success": False,
+        "errors": form.errors
+    }, status=400)
+
+def user_cancel_reservation(request, id):
+    reservation = get_object_or_404(
+        Reservation,
+        id=id,
+        user=request.user
+    )
+
+    if reservation.status != "pending":
+        return JsonResponse({
+            "success": False,
+            "message": "Only pending reservations can be cancelled."
+        }, status=400)
+
+    reservation.status = "cancelled"
+    reservation.save()
+
+    # 🧾 TIMELINE LOG
+    ReservationStatusLog.objects.create(
+        reservation=reservation,
+        status="cancelled"
+    )
+
+    # =========================
+    # 🔔 USER NOTIFICATION
+    # =========================
+    Notification.objects.create(
+        user=request.user,
+        message=f"Your reservation for {reservation.facility.name} has been cancelled.",
+        type="cancellation",
+        reservation=reservation
+    )
+
+    # =========================
+    # 🔔 ADMIN NOTIFICATION
+    # =========================
+    admin_users = User.objects.filter(is_superuser=True)
+
+    notifications = [
+        Notification(
+            user=admin,
+            message=f"Reservation cancelled by {request.user.username} for {reservation.facility.name} on {reservation.date}.",
+            type="reservation",
+            target_audience="admin",
+            reservation=reservation
+        )
+        for admin in admin_users
+    ]
+    Notification.objects.bulk_create(notifications)
+
+    messages.success(request, "Reservation cancelled successfully!")
+
+    return redirect('my_reservations')
+
 from django.views.decorators.http import require_POST
 
 @login_required
@@ -218,20 +302,49 @@ def create_booking(request):
         equipment_ids = data.get("equipment", [])
 
         # ----------------------------
-        # VALIDATION
+        # VALIDATION (MISSING FIELDS)
         # ----------------------------
         if not all([facility_id, date, start_time, end_time]):
-            return JsonResponse({"success": False, "error": "Missing fields"}, status=400)
-
-        if start_time >= end_time:
-            return JsonResponse({"success": False, "error": "Invalid time range"}, status=400)
+            return JsonResponse({
+                "success": False,
+                "error": "Missing fields"
+            }, status=400)
 
         # ----------------------------
-        # CONFLICT CHECK (IMPORTANT)
+        # PARSE DATE
+        # ----------------------------
+        try:
+            booking_date = datetime.strptime(date, "%Y-%m-%d").date()
+        except ValueError:
+            return JsonResponse({
+                "success": False,
+                "error": "Invalid date format"
+            }, status=400)
+
+        # ----------------------------
+        # BLOCK PAST DATES
+        # ----------------------------
+        if booking_date < today_date():
+            return JsonResponse({
+                "success": False,
+                "error": "You cannot book a past date"
+            }, status=400)
+
+        # ----------------------------
+        # TIME VALIDATION
+        # ----------------------------
+        if start_time >= end_time:
+            return JsonResponse({
+                "success": False,
+                "error": "Invalid time range"
+            }, status=400)
+
+        # ----------------------------
+        # CONFLICT CHECK
         # ----------------------------
         conflict = Reservation.objects.filter(
             facility_id=facility_id,
-            date=date,
+            date=booking_date,
             start_time__lt=end_time,
             end_time__gt=start_time
         ).exists()
@@ -250,7 +363,7 @@ def create_booking(request):
             reservation = Reservation.objects.create(
                 user=request.user,
                 facility_id=facility_id,
-                date=date,
+                date=booking_date,
                 start_time=start_time,
                 end_time=end_time,
                 notes=notes,
@@ -264,7 +377,7 @@ def create_booking(request):
                 user=request.user,
                 message=f"Your reservation for {reservation.facility.name} on {reservation.date} is pending approval.",
                 type="reservation",
-                target_audience=request.user.role,  # ✅ FIXED
+                target_audience=request.user.role,
                 reservation=reservation
             )
 
@@ -286,7 +399,9 @@ def create_booking(request):
 
             Notification.objects.bulk_create(notifications)
 
-            # equipment (M2M through table)
+            # -----------------------------
+            # EQUIPMENT HANDLING
+            # -----------------------------
             ReservationEquipment.objects.filter(reservation=reservation).delete()
 
             equipment_bulk = [
@@ -348,7 +463,7 @@ def facility_schedule_page(request, facility_id):
 def booked_dates(request, facility_id):
     bookings = Reservation.objects.filter(
         facility_id=facility_id,
-        status="approved"
+        status="approved"  # ONLY approved blocks dates
     ).values_list("date", flat=True)
 
     return JsonResponse({
@@ -836,7 +951,6 @@ def admin_reservations(request):
     reservations = Reservation.objects.select_related("user", "facility").order_by("-date", "-start_time")
     return render(request, "admin/admin_reservations.html", {"reservations": reservations})
 
-@csrf_exempt
 def update_reservation_status(request, id):
     if request.method == "POST":
 
@@ -846,30 +960,46 @@ def update_reservation_status(request, id):
         try:
             res = Reservation.objects.get(id=id)
 
-            if status in ["approved", "rejected"]:
+            if status in ["approved", "rejected", "pending"]:
+
+                old_status = res.status
                 res.status = status
                 res.save()
 
                 # =========================
-                # 🔔 USER NOTIFICATION
+                # 🧾 TIMELINE LOG
                 # =========================
-                notif_type = "approval" if status == "approved" else "rejection"
+                if old_status != status:
+                    ReservationStatusLog.objects.create(
+                        reservation=res,
+                        status=status
+                    )
+
+                # =========================
+                # 🔔 NOTIFICATION
+                # =========================
+                notif_type = "approval" if status == "approved" else (
+                              "rejection" if status == "rejected" else "info")
 
                 Notification.objects.create(
                     user=res.user,
                     message=f"Your reservation for {res.facility.name} on {res.date} has been {status}.",
-                    type=notif_type,  # ✅ dynamic type
+                    type=notif_type,
                     target_audience="employee",
                     reservation=res
-                )           
+                )
 
                 return JsonResponse({
                     "success": True,
-                    "message": f"Reservation {status}"
+                    "message": f"Reservation {status}",
+                    "status": status
                 })
 
         except Reservation.DoesNotExist:
-            return JsonResponse({"success": False, "error": "Reservation not found"}, status=404)
+            return JsonResponse({
+                "success": False,
+                "error": "Reservation not found"
+            }, status=404)
 
     return JsonResponse({"success": False}, status=400)
 

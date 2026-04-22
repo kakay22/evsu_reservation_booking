@@ -1,0 +1,329 @@
+{% extends 'user/base.html' %}
+{% block title %}Reservation Details{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto py-6 space-y-4">
+
+    <!-- BACK -->
+    <a href="{% url 'my_reservations' %}" class="inline-flex items-center gap-2 text-gray-500 hover:text-black text-sm">
+        <span class="material-icons text-sm">arrow_back</span>
+        Back
+    </a>
+
+    <!-- MAIN CARD -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+
+        <!-- FACILITY IMAGE -->
+        <div class="h-56 bg-gray-100">
+            {% if reservation.facility.image %}
+            <img src="{{ reservation.facility.image.url }}" class="w-full h-full object-cover">
+            {% else %}
+            <div class="flex items-center justify-center h-full text-gray-400">
+                No Image Available
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="p-6 space-y-6">
+
+            <!-- HEADER -->
+            <div class="flex justify-between items-start">
+                <div>
+                    <h2 class="text-2xl font-semibold">
+                        {{ reservation.facility.name }}
+                    </h2>
+                    <p class="text-gray-500 text-sm">Reservation Details</p>
+                </div>
+
+                <span id="statusBadge" class="px-3 py-1 text-xs rounded-full font-medium
+                    {% if reservation.status == 'pending' %}bg-yellow-100 text-yellow-700
+                    {% elif reservation.status == 'approved' %}bg-green-100 text-green-700
+                    {% else %}bg-red-100 text-red-700{% endif %}">
+                    {{ reservation.status|capfirst }}
+                </span>
+            </div>
+
+            <!-- INFO -->
+            <div class="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                    <p class="text-gray-500">Date</p>
+                    <p class="font-medium">{{ reservation.date }}</p>
+                </div>
+
+                <div>
+                    <p class="text-gray-500">Time</p>
+                    <p class="font-medium">
+                        {{ reservation.start_time }} - {{ reservation.end_time }}
+                    </p>
+                </div>
+
+                <div>
+                    <p class="text-gray-500">Booked On</p>
+                    <p class="font-medium">
+                        {{ reservation.created_at|date:"M d, Y" }}
+                    </p>
+                </div>
+            </div>
+
+            <!-- NOTES -->
+            <div>
+                <p class="text-gray-500 text-sm mb-1">Notes</p>
+                <div class="bg-gray-50 border rounded-xl p-4 text-sm">
+                    {{ reservation.notes|default:"No notes" }}
+                </div>
+            </div>
+
+            <!-- EQUIPMENT -->
+            <div>
+                <p class="text-gray-500 text-sm mb-2">Equipment</p>
+
+                {% if reservation.equipments.all %}
+                <div class="space-y-2">
+
+                    {% for item in reservation.equipments.all %}
+                    <div class="flex items-center justify-between p-3 border rounded-xl bg-gray-50">
+
+                        <div class="flex items-center gap-2">
+                            <span class="material-icons text-gray-500 text-sm">build</span>
+                            <span class="text-sm font-medium text-gray-800">
+                                {{ item.equipment.name }}
+                            </span>
+                        </div>
+
+                        <span class="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-700">
+                            Qty: {{ item.quantity }}
+                        </span>
+
+                    </div>
+                    {% endfor %}
+
+                </div>
+                {% else %}
+                <div class="text-sm text-gray-400 bg-gray-50 border rounded-xl p-3">
+                    No equipment selected
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- 🧾 TIMELINE -->
+            <div>
+                <h3 class="font-semibold mb-3">Timeline</h3>
+
+                <div class="space-y-3">
+                    {% for log in reservation.logs.all %}
+                    <div class="flex items-center gap-3 text-sm">
+                        <div class="w-2 h-2 rounded-full bg-blue-500"></div>
+                        <div>
+                            <p class="font-medium">{{ log.status|capfirst }}</p>
+                            <p class="text-xs text-gray-400">
+                                {{ log.created_at|date:"M d, h:i A" }}
+                            </p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- ACTIONS -->
+            <div class="flex justify-end gap-3 pt-4 border-t">
+
+                {% if reservation.status == 'pending' %}
+                <button onclick="openCancelModal()" class="px-4 py-2 border text-red-600 rounded-lg hover:bg-red-50">
+                    Cancel
+                </button>
+                {% endif %}
+
+                <button onclick="openEditModal()" class="px-4 py-2 bg-gray-900 text-white rounded-lg">
+                    Edit
+                </button>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- ✏️ EDIT RESERVATION MODAL -->
+<div id="editModal" class="fixed inset-0 hidden items-center justify-center z-50">
+
+    <!-- BACKDROP -->
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeEditModal()"></div>
+
+    <!-- MODAL -->
+    <div class="relative bg-white w-[95%] max-w-xl rounded-2xl shadow-xl p-6 space-y-5">
+
+        <!-- HEADER -->
+        <div class="flex justify-between items-center">
+            <h3 class="text-lg font-semibold">Edit Reservation</h3>
+            <button onclick="closeEditModal()" class="text-2xl text-gray-500">&times;</button>
+        </div>
+
+        <!-- FORM -->
+        <form id="editForm" class="space-y-4">
+
+            {% csrf_token %}
+
+            <!-- DATE -->
+            <div>
+                <label class="text-sm text-gray-600">Date</label>
+                <input type="date" name="date" value="{{ reservation.date|date:'Y-m-d' }}"
+                    class="w-full border rounded-lg p-2">
+            </div>
+
+            <!-- TIME -->
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="text-sm text-gray-600">Start Time</label>
+                    <input type="time" name="start_time" value="{{ reservation.start_time|time:'H:i' }}"
+                        class="w-full border rounded-lg p-2">
+                </div>
+
+                <div>
+                    <label class="text-sm text-gray-600">End Time</label>
+                    <input type="time" name="end_time" value="{{ reservation.end_time|time:'H:i' }}"
+                        class="w-full border rounded-lg p-2">
+                </div>
+            </div>
+
+            <!-- NOTES -->
+            <div>
+                <label class="text-sm text-gray-600">Notes</label>
+                <textarea name="notes" class="w-full border rounded-lg p-2">{{ reservation.notes }}</textarea>
+            </div>
+
+            <!-- ACTIONS -->
+            <div class="flex justify-end gap-2 pt-2">
+
+                <button type="button" onclick="closeEditModal()" class="px-4 py-2 bg-gray-100 rounded-lg">
+                    Cancel
+                </button>
+
+                <button type="submit" class="px-5 py-2 bg-black text-white rounded-lg">
+                    Save Changes
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+<div id="editModal" class="fixed inset-0 hidden items-center justify-center z-50">
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeEditModal()"></div>
+
+    <div class="relative bg-white w-[95%] max-w-xl rounded-2xl shadow-xl p-6 space-y-5">
+
+        <div class="flex justify-between items-center">
+            <h3 class="text-lg font-semibold">Edit Reservation</h3>
+            <button onclick="closeEditModal()" class="text-2xl">&times;</button>
+        </div>
+
+        <form id="editForm" class="space-y-4">
+
+            {% csrf_token %}
+
+            <input type="date" name="date"
+                   value="{{ reservation.date|date:'Y-m-d' }}"
+                   class="w-full border rounded-lg p-2">
+
+            <div class="grid grid-cols-2 gap-3">
+                <input type="time" name="start_time"
+                       value="{{ reservation.start_time|time:'H:i' }}"
+                       class="border rounded-lg p-2">
+
+                <input type="time" name="end_time"
+                       value="{{ reservation.end_time|time:'H:i' }}"
+                       class="border rounded-lg p-2">
+            </div>
+
+            <textarea name="notes" class="w-full border rounded-lg p-2">
+                {{ reservation.notes }}
+            </textarea>
+
+            <div class="flex justify-end gap-2">
+                <button type="button" onclick="closeEditModal()"
+                    class="px-4 py-2 bg-gray-100 rounded-lg">
+                    Cancel
+                </button>
+
+                <button class="px-5 py-2 bg-black text-white rounded-lg">
+                    Save
+                </button>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<div id="cancelModal" class="fixed inset-0 hidden items-center justify-center z-50">
+
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeCancelModal()"></div>
+
+    <div class="relative bg-white w-[90%] max-w-sm rounded-2xl p-6 space-y-4">
+
+        <h3 class="text-lg font-semibold">Cancel Reservation?</h3>
+        <p class="text-sm text-gray-500">This action cannot be undone.</p>
+
+        <div class="flex justify-end gap-2">
+            <button onclick="closeCancelModal()" class="px-4 py-2 bg-gray-100 rounded-lg">
+                No
+            </button>
+
+            <form method="POST" action="{% url 'user_cancel_reservation' reservation.id %}">
+                {% csrf_token %}
+                <button class="px-4 py-2 bg-red-600 text-white rounded-lg">
+                    Yes
+                </button>
+            </form>
+        </div>
+
+    </div>
+</div>
+
+<script>
+function openEditModal() {
+    document.getElementById("editModal").classList.remove("hidden");
+    document.getElementById("editModal").classList.add("flex");
+}
+
+function closeEditModal() {
+    document.getElementById("editModal").classList.add("hidden");
+}
+
+function openCancelModal() {
+    document.getElementById("cancelModal").classList.remove("hidden");
+    document.getElementById("cancelModal").classList.add("flex");
+}
+
+function closeCancelModal() {
+    document.getElementById("cancelModal").classList.add("hidden");
+}
+
+// AJAX EDIT
+document.getElementById("editForm").addEventListener("submit", function(e) {
+    e.preventDefault();
+
+    const data = Object.fromEntries(new FormData(this).entries());
+
+    fetch("{% url 'user_edit_reservation' reservation.id %}", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify(data)
+    })
+    .then(r => r.json())
+    .then(res => {
+        if (res.success) {
+            location.reload();
+        } else {
+            console.log(res.errors);
+            alert("Update failed");
+        }
+    });
+});
+</script>
+
+{% endblock %}

@@ -48,7 +48,7 @@
     <div id="listView" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
         {% for res in reservations %}
-        <div class="bg-white shadow rounded-2xl p-6 hover:shadow-lg transition">
+        <a href="{% url 'user_reservation_detail' res.pk %}" class="bg-white shadow rounded-2xl p-6 hover:shadow-lg transition">
 
             <h4 class="font-semibold text-gray-900">{{ res.facility.name }}</h4>
             <p class="text-sm text-gray-500">{{ res.date|date:"M d, Y" }}</p>
@@ -62,7 +62,7 @@
                 {{ res.status|capfirst }}
             </span>
 
-        </div>
+        </a>
         {% endfor %}
 
     </div>

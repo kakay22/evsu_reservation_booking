@@ -1,4 +1,5 @@
 {% load socialaccount %}
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -13,7 +14,7 @@ body { background: #f9fafb; }
 </head>
 <body class="min-h-screen flex items-center justify-center px-4">
 
-<div class="w-full max-w-6xl bg-white rounded-2xl shadow-lg overflow-hidden grid md:grid-cols-2">
+<div class="w-full max-w-6xl bg-white rounded-2xl md:shadow-lg md:border overflow-hidden grid md:grid-cols-2">
 
     <!-- LEFT SIDE (Branding) -->
     <div class="hidden md:flex flex-col justify-center bg-gradient-to-br from-gray-800 via-gray-900 to-gray-700 text-white p-12">
@@ -47,9 +48,11 @@ body { background: #f9fafb; }
         {% if messages %}
             <div class="space-y-2 mb-4">
                 {% for message in messages %}
-                    <div class="p-3 border-l-4 border-red-500 bg-red-50 text-red-700 rounded shadow-sm text-sm">
-                        {{ message }}
-                    </div>
+                {% if 'error' in message.tags %}
+                <div class="p-3 border-l-4 border-red-500 bg-red-50 text-red-700 rounded shadow-sm text-sm">
+                    {{ message }}
+                </div>
+                {% endif %}
                 {% endfor %}
             </div>
         {% endif %}
@@ -81,3 +84,5 @@ body { background: #f9fafb; }
 </div>
 </body>
 </html>
+<!-- Click pulse -->
+<script src="{% static 'js/pulse.js' %}"></script>

@@ -85,7 +85,9 @@ class Reservation(models.Model):
         ('pending', 'Pending'),
         ('approved', 'Approved'),
         ('rejected', 'Rejected'),
+        ('cancelled', 'Cancelled'),
     ]
+    
     user = models.ForeignKey('core.User', on_delete=models.CASCADE, related_name='reservations')
     facility = models.ForeignKey(Facility, on_delete=models.CASCADE, related_name='reservations')
     date = models.DateField()
@@ -126,7 +128,26 @@ class Reservation(models.Model):
 
     def __str__(self):
         return f"{self.facility.name} reserved by {self.user.username} on {self.date}"
+    
+    def save(self, *args, **kwargs):
+        is_new = self.pk is None
 
+        super().save(*args, **kwargs)
+
+        # log status
+        if is_new:
+            ReservationStatusLog.objects.create(
+                reservation=self,
+                status=self.status
+            )
+
+class ReservationStatusLog(models.Model):
+    reservation = models.ForeignKey(Reservation, on_delete=models.CASCADE, related_name="logs")
+    status = models.CharField(max_length=10, choices=Reservation.STATUS_CHOICES)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['created_at']
 
 # ---------- RESERVATION-EQUIPMENT LINK ----------
 class ReservationEquipment(models.Model):

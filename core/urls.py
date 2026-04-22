@@ -10,6 +10,10 @@ urlpatterns = [
     path("api/book/", views.create_booking, name="create_booking"),
     path("api/notifications/", views.get_user_notifications, name="get_user_notifications"),
 
+    path('user_reservation_detail/<int:id>/', views.user_reservation_detail, name='user_reservation_detail'),
+    path('reservation/<int:id>/edit/', views.user_edit_reservation, name='user_edit_reservation'),
+    path('user_cancel_reservation/<int:id>/', views.user_cancel_reservation, name='user_cancel_reservation'),
+
     path('admin_reservations/<int:id>/status/', views.update_reservation_status, name='update_reservation_status'),
     path('admin_reservations/<int:id>/delete/', views.delete_reservation, name='delete_reservation'),
     path('facilities/', views.facilities_view, name='facilities'),
