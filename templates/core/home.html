@@ -87,55 +87,149 @@
             }
         }
     </style>
+    <style>
+        .ai-chip {
+            white-space: nowrap;
+            padding: 6px 14px;
+            font-size: 12px;
+            border-radius: 999px;
+            border: 1px solid #e5e7eb;
+            background: #f9fafb;
+            transition: all 0.2s ease;
+        }
+
+        .ai-chip:hover {
+            background: black;
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
 </head>
 
-<body class="font-sans text-gray-800">
+<body class="bg-[#f5f7fb] text-gray-800 font-sans antialiased overflow-x-hidden">
 
-    <!-- NAVBAR -->
-    <nav class="fixed top-0 w-full z-50 glass border-b">
-        <div class="flex justify-between items-center px-6 md:px-10 py-4 max-w-7xl mx-auto">
+    <!-- ================= NAVBAR ================= -->
+    <nav class="fixed top-0 inset-x-0 z-50">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-4">
 
-            <div class="flex items-center gap-2">
-                <span class="material-icons">event</span>
-                <h1 class="font-semibold text-lg">Reserve</h1>
-            </div>
+            <div class="backdrop-blur-2xl bg-white/75 border border-white/40
+                        shadow-[0_8px_30px_rgb(0,0,0,0.06)]
+                        rounded-2xl px-5 md:px-7 py-4">
 
-            <!-- Desktop -->
-            <div class="hidden md:flex space-x-6 items-center">
-                <a href="{% url 'login' %}"
-                    class="text-gray-600 hover:text-black border border-gray-300 py-2 px-4 rounded-lg">
-                    Login
-                </a>
-                <a href="{% url 'register' %}" class="bg-black text-white px-5 py-2 rounded-xl hover:bg-gray-800">
-                    Sign Up
-                </a>
-            </div>
+                <div class="flex items-center justify-between">
 
-            <!-- Mobile Button -->
-            <button class="md:hidden" onclick="toggleMenu()">
-                <span class="material-icons">menu</span>
-            </button>
-        </div>
+                    <!-- BRAND -->
+                    <div class="flex items-center gap-3">
 
-        <!-- Mobile Menu -->
-        <div id="mobileMenu" class="hidden md:hidden px-4 pb-4">
+                        <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600
+                                    flex items-center justify-center text-white shadow-lg">
 
-            <div class="bg-white/90 backdrop-blur-md shadow-xl rounded-2xl p-4 space-y-3 border border-gray-100">
+                            <span class="material-icons text-[24px]">
+                                event_available
+                            </span>
+                        </div>
 
-                <!-- Login -->
-                <a href="{% url 'login' %}"
-                    class="flex items-center justify-center py-2.5 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-100 transition">
-                    Login
-                </a>
+                        <div>
+                            <h1 class="font-bold text-lg leading-none">
+                                EVSU Reserve
+                            </h1>
 
-                <!-- Divider -->
-                <div class="h-px bg-gray-100"></div>
+                            <p class="text-xs text-gray-500 mt-1">
+                                Smart Reservation Platform
+                            </p>
+                        </div>
+                    </div>
 
-                <!-- Sign Up -->
-                <a href="{% url 'register' %}"
-                    class="block text-center py-2.5 rounded-lg bg-black text-white font-semibold shadow-md hover:bg-gray-900 transition">
-                    Sign Up
-                </a>
+                    <!-- DESKTOP NAV -->
+                    <div class="hidden lg:flex items-center gap-8">
+
+                        <a href="#facilities" class="text-sm text-gray-600 hover:text-black transition">
+                            Facilities
+                        </a>
+
+                        <a href="#how" class="text-sm text-gray-600 hover:text-black transition">
+                            How it Works
+                        </a>
+
+                        <a href="#equipment" class="text-sm text-gray-600 hover:text-black transition">
+                            Equipment
+                        </a>
+
+                    </div>
+
+                    <!-- ACTIONS -->
+                    <div class="hidden md:flex items-center gap-3">
+
+                        <a href="{% url 'login' %}" class="px-5 py-2.5 rounded-xl border border-gray-300
+                                   text-sm font-medium hover:bg-gray-100 transition">
+
+                            Login
+                        </a>
+
+                        <a href="{% url 'register' %}" class="px-5 py-2.5 rounded-xl bg-gray-900 text-white
+                                   text-sm font-medium hover:bg-black transition
+                                   shadow-lg shadow-black/10">
+
+                            Create Account
+                        </a>
+                    </div>
+
+                    <!-- MOBILE MENU -->
+                    <button onclick="toggleMenu()" class="md:hidden w-11 h-11 rounded-xl border border-gray-200
+                               flex items-center justify-center bg-white">
+
+                        <span class="material-icons">
+                            menu
+                        </span>
+                    </button>
+
+                </div>
+
+                <!-- MOBILE MENU CONTENT -->
+                <div id="mobileMenu" class="hidden md:hidden mt-4 border-t border-gray-100 pt-4">
+
+                    <div class="space-y-3">
+
+                        <a href="#facilities" class="block px-4 py-3 rounded-xl hover:bg-gray-100 transition text-sm">
+                            Facilities
+                        </a>
+
+                        <a href="#how" class="block px-4 py-3 rounded-xl hover:bg-gray-100 transition text-sm">
+                            How it Works
+                        </a>
+
+                        <a href="#equipment" class="block px-4 py-3 rounded-xl hover:bg-gray-100 transition text-sm">
+                            Equipment
+                        </a>
+
+                        <div class="grid grid-cols-2 gap-3 pt-2">
+
+                            <a href="{% url 'login' %}" class="text-center py-3 rounded-xl border border-gray-300
+                                       text-sm font-medium">
+
+                                Login
+                            </a>
+
+                            <a href="{% url 'register' %}" class="text-center py-3 rounded-xl bg-black text-white
+                                       text-sm font-semibold">
+
+                                Sign Up
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </div>
 
             </div>
 
@@ -144,289 +238,382 @@
 
     {% load static %}
 
-    <!-- HERO -->
-    <section class="relative text-center py-20 md:py-28 px-6 mt-20 overflow-hidden">
+    <!-- ================= HERO ================= -->
+    <section class="relative min-h-screen flex items-center justify-center overflow-hidden pt-28">
 
-        <!-- BACKGROUND IMAGE -->
-        <div class="absolute inset-0 -z-10">
-            <img src="{% static 'evsu.jpg' %}" class="w-full h-full object-cover object-center scale-105"
-                style="transform: translateZ(0); will-change: transform;">
+        <!-- BG -->
+        <div class="absolute inset-0">
 
-            <!-- DARK OVERLAY -->
-            <div class="absolute inset-0 bg-black/30"></div>
+            <img src="{% static 'evsu.jpg' %}" class="w-full h-full object-cover scale-105" id="heroBg">
+
+            <div class="absolute inset-0 bg-gradient-to-br from-black/80 via-black/50 to-blue-900/40"></div>
+
         </div>
 
-        <!-- PARALLAX EFFECT -->
-        <div id="parallaxLayer" class="absolute inset-0 -z-10"></div>
-
-        <!-- Floating Icons (hidden on mobile) -->
-        <div class="hidden md:block relative z-10">
-            <span class="material-icons floating-icon icon1">event</span>
-            <span class="material-icons floating-icon icon2">meeting_room</span>
-            <span class="material-icons floating-icon icon3">schedule</span>
-            <span class="material-icons floating-icon icon4">verified</span>
-        </div>
+        <!-- GLOW -->
+        <div class="absolute top-20 left-10 w-72 h-72 bg-blue-500/30 blur-[120px] rounded-full"></div>
+        <div class="absolute bottom-10 right-10 w-72 h-72 bg-indigo-500/20 blur-[120px] rounded-full"></div>
 
         <!-- CONTENT -->
-        <div class="max-w-3xl mx-auto relative z-10 text-white">
+        <div class="relative z-10 max-w-5xl mx-auto px-6 lg:px-10 w-full text-center">
 
-            <h2 class="text-3xl md:text-5xl font-semibold leading-tight drop-shadow-lg">
-                Reserve Facilities <br class="hidden md:block"> the Smart Way
-            </h2>
+            <div class="flex flex-col items-center">
 
-            <p class="mt-6 text-gray-200 text-base md:text-lg drop-shadow-lg">
-                Book university spaces, request equipment, and manage approvals — all in one place.
-            </p>
+                <!-- BADGE -->
+                <div class="inline-flex items-center gap-2
+                        px-4 py-2 rounded-full
+                        bg-white/10 backdrop-blur-md
+                        border border-white/10
+                        text-white text-sm mb-6">
 
-            <div class="mt-8 flex flex-col sm:flex-row justify-center gap-4 drop-shadow-lg">
-                <a href="{% url 'register' %}" class="bg-white text-black px-6 py-3 rounded-xl hover:bg-gray-200">
-                    Create Account
-                </a>
+                    <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
 
-                <a href="#how"
-                    class="border glass-light border-white text-white drop-shadow-lg px-6 py-3 rounded-xl hover:bg-white/10">
-                    How it Works
-                </a>
+                    Trusted by EVSU students & faculty
+                </div>
+
+                <!-- TITLE -->
+                <h1 class="text-4xl sm:text-5xl lg:text-7xl
+                       font-black text-white leading-tight">
+
+                    Reserve Campus
+                    Facilities
+                    <span class="text-blue-400 block mt-2">
+                        Instantly
+                    </span>
+                </h1>
+
+                <!-- DESCRIPTION -->
+                <p class="mt-6 text-lg text-gray-200 max-w-2xl leading-relaxed">
+
+                    Book classrooms, event halls, laboratories, and equipment
+                    through a modern reservation platform built for efficiency.
+                </p>
+
+                <!-- CTA -->
+                <div class="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
+
+                    <a href="{% url 'register' %}" class="group bg-white text-black px-7 py-4 rounded-2xl
+                           font-semibold flex items-center justify-center gap-2
+                           hover:scale-[1.02] transition shadow-2xl">
+
+                        Get Started
+
+                        <span class="material-icons group-hover:translate-x-1 transition">
+                            arrow_forward
+                        </span>
+                    </a>
+
+                    <a href="#how" class="px-7 py-4 rounded-2xl
+                           border border-white/20
+                           backdrop-blur-md bg-white/10
+                           text-white font-medium
+                           hover:bg-white/15 transition">
+
+                        Learn More
+                    </a>
+
+                </div>
+
+                <!-- STATS -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-14 w-full max-w-3xl">
+
+                    <div class="bg-white/10 backdrop-blur-md border border-white/10
+                            rounded-2xl p-5">
+
+                        <h3 class="text-2xl font-bold text-white">
+                            24/7
+                        </h3>
+
+                        <p class="text-xs text-gray-300 mt-1">
+                            Reservation Access
+                        </p>
+                    </div>
+
+                    <div class="bg-white/10 backdrop-blur-md border border-white/10
+                            rounded-2xl p-5">
+
+                        <h3 class="text-2xl font-bold text-white">
+                            Fast
+                        </h3>
+
+                        <p class="text-xs text-gray-300 mt-1">
+                            Approval Process
+                        </p>
+                    </div>
+
+                    <div class="bg-white/10 backdrop-blur-md border border-white/10
+                            rounded-2xl p-5">
+
+                        <h3 class="text-2xl font-bold text-white">
+                            Smart
+                        </h3>
+
+                        <p class="text-xs text-gray-300 mt-1">
+                            Scheduling System
+                        </p>
+                    </div>
+
+                </div>
+
             </div>
 
         </div>
 
     </section>
 
-    <script>
-        window.addEventListener("scroll", function () {
-            const scrollY = window.scrollY;
-            const bg = document.querySelector("section img");
+    <!-- ================= FACILITIES ================= -->
+    <section id="facilities" class="py-24 px-6 lg:px-10">
 
-            if (bg) {
-                bg.style.transform = `translateY(${scrollY * 0.3}px) scale(1.05)`;
-            }
-        });
-    </script>
-
-    <!-- FACILITIES -->
-    <section class="py-20 px-6 md:px-10 bg-white">
         <div class="max-w-7xl mx-auto">
 
-            <div class="text-center mb-14">
-                <h3 class="text-3xl md:text-4xl font-semibold text-gray-900">
-                    Available Facilities
-                </h3>
-                <p class="text-gray-500 mt-3">
-                    Book premium spaces for your events and activities
+            <!-- TITLE -->
+            <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-14">
+
+                <div>
+                    <p class="text-blue-600 font-semibold text-sm uppercase tracking-wider">
+                        Facilities
+                    </p>
+
+                    <h2 class="text-3xl md:text-5xl font-black text-gray-900 mt-2">
+                        Explore Available Spaces
+                    </h2>
+                </div>
+
+                <p class="text-gray-500 max-w-lg">
+                    Discover premium university facilities designed
+                    for academic events, meetings, and activities.
                 </p>
+
             </div>
 
-            <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- GRID -->
+            <div class="grid sm:grid-cols-2 xl:grid-cols-3 gap-8">
 
                 {% for f in facilities %}
-                <div class="group bg-white rounded-2xl overflow-hidden border shadow-sm hover:shadow-xl transition">
+                <div class="group bg-white rounded-[2rem]
+                            overflow-hidden border border-gray-100
+                            shadow-sm hover:shadow-2xl
+                            transition duration-500">
 
                     <!-- IMAGE -->
-                    <div class="h-52 overflow-hidden relative bg-gray-100 cursor-pointer group"
-                        onclick="openImageModal('{{ f.image.url }}')">
+                    <div class="relative h-64 overflow-hidden">
 
                         {% if f.image %}
-                        <img src="{{ f.image.url }}"
-                            class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
+                        <img src="{{ f.image.url }}" class="w-full h-full object-cover
+                                   group-hover:scale-110 transition duration-700">
                         {% endif %}
 
-                        <!-- GRADIENT OVERLAY -->
-                        <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent"></div>
 
-                        <!-- 👁 VIEW INDICATOR (CENTER) -->
-                        <div class="absolute bottom-3 left-3
-            md:inset-0 md:flex md:items-center md:justify-center
-            opacity-100 md:opacity-0 md:group-hover:opacity-100 transition">
+                        <!-- VIEW -->
+                        <button onclick="openImageModal('{{ f.image.url }}')" class="absolute top-4 right-4
+                                   w-11 h-11 rounded-xl
+                                   bg-white/15 backdrop-blur-md
+                                   border border-white/10
+                                   text-white flex items-center justify-center">
 
-                            <div
-                                class="bg-black/60 text-white px-3 py-1.5 rounded-full flex items-center gap-2 text-xs md:text-sm backdrop-blur-sm">
-                                <span class="material-icons text-base">visibility</span>
-                                View
-                            </div>
-
-                        </div>
-
-                        <!-- CAPACITY BADGE -->
-                        {% if f.capacity %}
-                        <div class="absolute bottom-3 right-3 bg-white/90 px-2 py-1 rounded text-xs">
-                            👥 {{ f.capacity }}
-                        </div>
-                        {% endif %}
-
-                    </div>
-
-                    <!-- FULLSCREEN IMAGE VIEWER -->
-                    <div id="imageViewer"
-                        class="hidden fixed inset-0 bg-black/95 z-50 flex items-center justify-center">
-
-                        <!-- CLOSE BUTTON -->
-                        <button onclick="closeImageModal()"
-                            class="absolute top-4 right-4 text-white text-3xl hover:scale-110 transition">
-                            ×
+                            <span class="material-icons text-[20px]">
+                                visibility
+                            </span>
                         </button>
 
-                        <!-- IMAGE -->
-                        <img id="viewerImage" src=""
-                            class="max-h-[90vh] max-w-[95vw] object-contain rounded-lg shadow-2xl transition-all duration-300">
+                        <!-- CAPACITY -->
+                        {% if f.capacity %}
+                        <div class="absolute bottom-4 left-4
+                                    px-4 py-2 rounded-full
+                                    bg-white/15 backdrop-blur-md
+                                    text-white text-sm border border-white/10">
+
+                            👥 {{ f.capacity }} Capacity
+                        </div>
+                        {% endif %}
 
                     </div>
 
                     <!-- CONTENT -->
-                    <div class="p-5 flex flex-col">
+                    <div class="p-6">
 
-                        <h4 class="font-semibold text-lg">{{ f.name }}</h4>
+                        <div class="flex items-start justify-between gap-4">
 
-                        <p class="text-sm text-gray-500 mt-1">
-                            {{ f.description|default:"No description available." }}
-                        </p>
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-900">
+                                    {{ f.name }}
+                                </h3>
 
-                        <div class="text-xs text-gray-400 mt-2">
-                            📍 {{ f.location|default:"EVSU Campus" }}
+                                <p class="text-sm text-gray-500 mt-2 line-clamp-2">
+                                    {{ f.description|default:"No description available." }}
+                                </p>
+                            </div>
+
                         </div>
 
-                        <!-- BUTTON (FIXED ALWAYS VISIBLE) -->
-                        <a href="{% url 'facility_public_view' f.id %}" class="mt-4 flex items-center justify-center gap-2
-                              bg-gray-900 text-white py-2.5 rounded-xl
-                              hover:bg-black transition text-sm font-medium">
+                        <!-- LOCATION -->
+                        <div class="flex items-center gap-2 mt-5 text-sm text-gray-500">
 
-                            <span class="material-icons text-[18px]">calendar_month</span>
+                            <span class="material-icons text-[18px]">
+                                location_on
+                            </span>
+
+                            {{ f.location|default:"EVSU Campus" }}
+
+                        </div>
+
+                        <!-- BUTTON -->
+                        <a href="{% url 'facility_public_view' f.id %}" class="mt-6 flex items-center justify-center gap-2
+                                   bg-gray-900 text-white py-3.5 rounded-2xl
+                                   hover:bg-black transition font-medium">
+
+                            <span class="material-icons text-[20px]">
+                                calendar_month
+                            </span>
+
                             View Availability
                         </a>
 
                     </div>
+
                 </div>
-                {% empty %}
-                <p class="text-gray-400 col-span-full text-center">No facilities available.</p>
                 {% endfor %}
 
             </div>
+
         </div>
+
     </section>
 
-    <!-- EQUIPMENT -->
-    <section class="bg-gray-50 py-20 px-6 md:px-10">
+    <!-- ================= EQUIPMENT ================= -->
+    <section id="equipment" class="py-24 px-6 lg:px-10 bg-gradient-to-b from-white to-[#eef2ff]">
+
         <div class="max-w-7xl mx-auto">
 
             <div class="text-center mb-14">
-                <h3 class="text-3xl md:text-4xl font-semibold">
+
+                <p class="text-blue-600 font-semibold text-sm uppercase tracking-widest">
+                    Equipment
+                </p>
+
+                <h2 class="text-3xl md:text-5xl font-black mt-3">
                     Available Equipment
-                </h3>
+                </h2>
+
             </div>
 
-            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
 
                 {% for e in equipments %}
-                <div class="bg-white p-5 rounded-2xl text-center shadow-sm hover:shadow-lg transition">
+                <div class="bg-white rounded-3xl p-6 text-center
+                            border border-gray-100 shadow-sm
+                            hover:shadow-xl hover:-translate-y-1 transition">
 
                     {% if e.image %}
-                    <img src="{{ e.image.url }}" class="h-14 mx-auto mb-3">
+                    <img src="{{ e.image.url }}" class="w-16 h-16 object-contain mx-auto mb-5">
                     {% else %}
-                    <span class="material-icons text-4xl text-gray-400">devices</span>
+                    <div class="w-16 h-16 rounded-2xl bg-gray-100
+                                flex items-center justify-center mx-auto mb-5">
+
+                        <span class="material-icons text-gray-500 text-3xl">
+                            devices
+                        </span>
+                    </div>
                     {% endif %}
 
-                    <p class="text-sm font-medium">{{ e.name }}</p>
-                    <p class="text-xs text-gray-400">Qty: {{ e.quantity }}</p>
+                    <h4 class="font-semibold text-sm">
+                        {{ e.name }}
+                    </h4>
+
+                    <p class="text-xs text-gray-500 mt-2">
+                        Qty: {{ e.quantity }}
+                    </p>
 
                 </div>
-                {% empty %}
-                <p class="text-gray-400 col-span-full text-center">No equipment available.</p>
                 {% endfor %}
 
             </div>
+
         </div>
+
     </section>
 
+    <!-- ================= HOW IT WORKS ================= -->
+    <section id="how" class="py-24 px-6 lg:px-10 bg-white">
 
-    <!-- HOW IT WORKS -->
-    <section id="how" class="py-16 md:py-20 px-6 md:px-10 text-center">
-        <div class="max-w-5xl mx-auto">
-            <h3 class="text-2xl md:text-3xl font-semibold mb-12">How It Works</h3>
+        <div class="max-w-6xl mx-auto text-center">
 
-            <div class="grid md:grid-cols-3 gap-10">
-
-                <div>
-                    <span class="material-icons text-4xl mb-3">person_add</span>
-                    <h4 class="font-semibold">Create Account</h4>
-                    <p class="text-gray-500">Sign up to start booking</p>
-                </div>
-
-                <div>
-                    <span class="material-icons text-4xl mb-3">edit_calendar</span>
-                    <h4 class="font-semibold">Submit Request</h4>
-                    <p class="text-gray-500">Fill out reservation form</p>
-                </div>
-
-                <div>
-                    <span class="material-icons text-4xl mb-3">verified</span>
-                    <h4 class="font-semibold">Get Approval</h4>
-                    <p class="text-gray-500">Admin reviews your request</p>
-                </div>
-
-            </div>
-        </div>
-    </section>
-
-    <!-- CTA -->
-    <section class="bg-black text-white text-center py-16 md:py-20 px-6">
-        <div class="max-w-xl mx-auto">
-            <h3 class="text-2xl md:text-3xl font-semibold">Ready to Reserve?</h3>
-
-            <p class="mt-4 text-gray-300">
-                Create your account and start booking today.
+            <p class="text-blue-600 font-semibold uppercase tracking-widest text-sm">
+                Process
             </p>
 
-            <a href="{% url 'register' %}" class="mt-6 inline-block bg-white text-black px-6 py-3 rounded-xl">
-                Sign Up Now
-            </a>
+            <h2 class="text-3xl md:text-5xl font-black mt-3">
+                How It Works
+            </h2>
+
+            <div class="grid md:grid-cols-3 gap-8 mt-16">
+
+                <div class="bg-[#f8fafc] rounded-[2rem] p-8 border border-gray-100">
+
+                    <div class="w-16 h-16 rounded-2xl bg-blue-600 text-white
+                                flex items-center justify-center mx-auto">
+
+                        <span class="material-icons text-3xl">
+                            person_add
+                        </span>
+                    </div>
+
+                    <h3 class="font-bold text-xl mt-6">
+                        Create Account
+                    </h3>
+
+                    <p class="text-gray-500 mt-3 text-sm">
+                        Register and access the reservation system instantly.
+                    </p>
+
+                </div>
+
+                <div class="bg-[#f8fafc] rounded-[2rem] p-8 border border-gray-100">
+
+                    <div class="w-16 h-16 rounded-2xl bg-indigo-600 text-white
+                                flex items-center justify-center mx-auto">
+
+                        <span class="material-icons text-3xl">
+                            edit_calendar
+                        </span>
+                    </div>
+
+                    <h3 class="font-bold text-xl mt-6">
+                        Submit Reservation
+                    </h3>
+
+                    <p class="text-gray-500 mt-3 text-sm">
+                        Select facilities, dates, and preferred schedules.
+                    </p>
+
+                </div>
+
+                <div class="bg-[#f8fafc] rounded-[2rem] p-8 border border-gray-100">
+
+                    <div class="w-16 h-16 rounded-2xl bg-green-600 text-white
+                                flex items-center justify-center mx-auto">
+
+                        <span class="material-icons text-3xl">
+                            verified
+                        </span>
+                    </div>
+
+                    <h3 class="font-bold text-xl mt-6">
+                        Get Approved
+                    </h3>
+
+                    <p class="text-gray-500 mt-3 text-sm">
+                        Receive approval notifications and confirmation updates.
+                    </p>
+
+                </div>
+
+            </div>
+
         </div>
+
     </section>
-
-    <!-- 🤖 AI FLOATING ASSISTANT -->
-    <div id="aiAssistant" class="fixed bottom-5 right-5 z-50">
-
-        <!-- CHAT BUTTON -->
-        <button onclick="toggleAI()"
-            class="bg-black text-white w-14 h-14 rounded-full shadow-xl flex items-center justify-center hover:scale-110 transition">
-            <span class="material-icons">smart_toy</span>
-        </button>
-
-        <!-- CHAT PANEL -->
-        <div id="aiPanel"
-            class="hidden mt-3 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden">
-
-            <!-- HEADER -->
-            <div class="bg-black text-white px-4 py-3 flex justify-between items-center">
-                <div class="flex items-center gap-2">
-                    <span class="material-icons text-sm">smart_toy</span>
-                    <span class="text-sm font-medium">AI Assistant</span>
-                </div>
-                <button onclick="toggleAI()" class="text-white text-lg">&times;</button>
-            </div>
-
-            <!-- MESSAGES -->
-            <div id="aiMessages" class="p-3 h-64 overflow-y-auto space-y-2 text-sm bg-gray-50">
-
-                <!-- Default message -->
-                <div class="bg-gray-200 text-gray-800 px-3 py-2 rounded-lg w-fit">
-                    Hi! 👋 How can I help you with reservations?
-                </div>
-
-            </div>
-
-            <!-- INPUT -->
-            <div class="p-2 border-t flex gap-2">
-                <input id="aiInput" type="text" placeholder="Ask something..."
-                    class="flex-1 border rounded-lg px-3 py-2 text-sm outline-none">
-
-                <button id="aiSendBtn" onclick="sendAIMessage()" class="bg-black text-white px-3 rounded-lg text-sm">
-                    Send
-                </button>
-            </div>
-
-        </div>
-
-    </div>
 
     <script>
         let isSending = false;
@@ -525,7 +712,30 @@
 
             return cookieValue;
         }
+
+        function scrollChips(amount) {
+            const container = document.getElementById("aiSuggestions");
+            container.scrollBy({
+                left: amount,
+                behavior: "smooth"
+            });
+        }
     </script>
+
+    <!-- FULLSCREEN IMAGE VIEWER -->
+    <div id="imageViewer" class="hidden fixed inset-0 bg-black/95 z-50 flex items-center justify-center">
+
+        <!-- CLOSE BUTTON -->
+        <button onclick="closeImageModal()"
+            class="absolute top-4 right-4 text-white text-3xl hover:scale-110 transition">
+            ×
+        </button>
+
+        <!-- IMAGE -->
+        <img id="viewerImage" src=""
+            class="max-h-[90vh] max-w-[95vw] object-contain rounded-lg shadow-2xl transition-all duration-300">
+
+    </div>
 
     <!-- FOOTER -->
     <footer class="text-center py-6 text-gray-500 text-sm">
@@ -540,24 +750,46 @@
 
     <script>
         function openImageModal(src) {
+
             const modal = document.getElementById("imageViewer");
             const img = document.getElementById("viewerImage");
 
             img.src = src;
-            modal.classList.remove("hidden");
 
-            // prevent background scroll
+            modal.classList.remove("hidden");
+            modal.classList.add("flex");
+
             document.body.style.overflow = "hidden";
         }
 
         function closeImageModal() {
+
             const modal = document.getElementById("imageViewer");
             const img = document.getElementById("viewerImage");
 
             modal.classList.add("hidden");
+            modal.classList.remove("flex");
+
             img.src = "";
 
             document.body.style.overflow = "auto";
+        }
+
+        // CLOSE WHEN CLICKING BACKDROP
+        document.getElementById("imageViewer")
+            .addEventListener("click", function (e) {
+
+                if (e.target.id === "imageViewer") {
+                    closeImageModal();
+                }
+            });
+    </script>
+
+    <script>
+        function quickAsk(text) {
+            const input = document.getElementById("aiInput");
+            input.value = text;
+            sendAIMessage();
         }
     </script>
 

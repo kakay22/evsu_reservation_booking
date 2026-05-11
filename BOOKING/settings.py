@@ -135,11 +135,14 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
 
-USE_I18N = True
+BASE_DIR = Path(__file__).resolve().parent.parent
 
+# IMPORTANT: enable timezone support
 USE_TZ = True
+
+# Set your local timezone (Philippines example)
+TIME_ZONE = 'Asia/Manila'
 
 
 # Static files (CSS, JavaScript, Images)

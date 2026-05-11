@@ -3,90 +3,332 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto space-y-8">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
-    <!-- GREETING -->
-    <div>
-        <h1 class="text-2xl font-semibold text-gray-900">
-            Welcome back 👋
-        </h1>
-        <p class="text-sm text-gray-500">
-            Here’s what’s happening with your reservations
-        </p>
-    </div>
+    <!-- ================= HERO ================= -->
+    <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-6 sm:p-8 shadow-2xl">
 
-    <!-- QUICK ACTION -->
-    <div class="flex justify-end">
-        <a href="{% url 'facilities' %}"
-           class="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-xl text-sm hover:bg-gray-800 transition">
-            <span class="material-icons text-sm">add</span>
-            Book New Reservation
-        </a>
-    </div>
+        <!-- Background Glow -->
+        <div class="absolute -top-10 -right-10 w-40 h-40 bg-blue-500/20 rounded-full blur-3xl"></div>
+        <div class="absolute -bottom-10 -left-10 w-40 h-40 bg-indigo-500/20 rounded-full blur-3xl"></div>
 
-    <!-- MAIN GRID -->
-    <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
 
-        <!-- LEFT: UPCOMING -->
-        <div class="xl:col-span-2 bg-white border border-gray-100 rounded-2xl shadow-sm p-6">
+            <!-- LEFT -->
+            <div class="space-y-3">
 
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-lg font-semibold text-gray-900">
-                    Upcoming Reservations
-                </h2>
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/10 text-white text-xs backdrop-blur">
+                    <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+                    Reservation System Active
+                </div>
+
+                <div>
+                    <h1 class="text-3xl sm:text-4xl font-bold text-white tracking-tight">
+                        Welcome back 👋
+                    </h1>
+
+                    <p class="text-sm sm:text-base text-gray-300 mt-2 max-w-2xl">
+                        Manage your reservations, monitor approvals,
+                        and keep track of upcoming facility bookings.
+                    </p>
+                </div>
+
+            </div>
+
+            <!-- RIGHT -->
+            <div class="flex flex-col sm:flex-row gap-3">
+
+                <a href="{% url 'facilities' %}"
+                   class="inline-flex items-center justify-center gap-2
+                          bg-white text-gray-900
+                          px-5 py-3 rounded-2xl
+                          text-sm font-medium
+                          hover:bg-gray-100
+                          transition shadow-lg">
+
+                    <span class="material-icons text-[20px]">add</span>
+                    New Reservation
+                </a>
 
                 <a href="{% url 'my_reservations' %}"
-                   class="text-xs text-gray-600 hover:text-gray-900 font-medium transition flex items-center gap-1">
+                   class="inline-flex items-center justify-center gap-2
+                          bg-white/10 border border-white/10
+                          text-white
+                          px-5 py-3 rounded-2xl
+                          text-sm font-medium
+                          hover:bg-white/20
+                          transition backdrop-blur">
+
+                    <span class="material-icons text-[20px]">calendar_month</span>
+                    My Reservations
+                </a>
+
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ================= STATS ================= -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+
+        <!-- CARD -->
+        <div class="group relative overflow-hidden rounded-3xl bg-white border border-gray-100 p-5 shadow-sm hover:shadow-xl transition-all duration-300">
+
+            <div class="absolute top-0 right-0 w-24 h-24 bg-blue-50 rounded-full blur-2xl opacity-60"></div>
+
+            <div class="relative flex items-start justify-between">
+
+                <div>
+                    <p class="text-sm text-gray-500">
+                        Total Reservations
+                    </p>
+
+                    <h2 class="text-3xl font-bold text-gray-900 mt-3">
+                        {{ total_reservations }}
+                    </h2>
+                </div>
+
+                <div class="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center">
+                    <span class="material-icons text-blue-600">event_note</span>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- CARD -->
+        <div class="group relative overflow-hidden rounded-3xl bg-white border border-gray-100 p-5 shadow-sm hover:shadow-xl transition-all duration-300">
+
+            <div class="absolute top-0 right-0 w-24 h-24 bg-yellow-50 rounded-full blur-2xl opacity-60"></div>
+
+            <div class="relative flex items-start justify-between">
+
+                <div>
+                    <p class="text-sm text-gray-500">
+                        Pending Approvals
+                    </p>
+
+                    <h2 class="text-3xl font-bold text-gray-900 mt-3">
+                        {{ pending_approvals }}
+                    </h2>
+                </div>
+
+                <div class="w-12 h-12 rounded-2xl bg-yellow-50 flex items-center justify-center">
+                    <span class="material-icons text-yellow-600">pending_actions</span>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- CARD -->
+        <div class="group relative overflow-hidden rounded-3xl bg-white border border-gray-100 p-5 shadow-sm hover:shadow-xl transition-all duration-300 sm:col-span-2 xl:col-span-1">
+
+            <div class="absolute top-0 right-0 w-24 h-24 bg-green-50 rounded-full blur-2xl opacity-60"></div>
+
+            <div class="relative flex items-start justify-between">
+
+                <div>
+                    <p class="text-sm text-gray-500">
+                        Upcoming Reservations
+                    </p>
+
+                    <h2 class="text-3xl font-bold text-gray-900 mt-3">
+                        {{ upcoming_reservations }}
+                    </h2>
+                </div>
+
+                <div class="w-12 h-12 rounded-2xl bg-green-50 flex items-center justify-center">
+                    <span class="material-icons text-green-600">schedule</span>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ================= MAIN CONTENT ================= -->
+    <div class="grid grid-cols-1 2xl:grid-cols-3 gap-6">
+
+        <!-- UPCOMING -->
+        <div class="2xl:col-span-2 bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden">
+
+            <!-- HEADER -->
+            <div class="flex items-center justify-between p-6 border-b border-gray-100">
+
+                <div>
+                    <h2 class="text-lg font-semibold text-gray-900">
+                        Upcoming Reservations
+                    </h2>
+
+                    <p class="text-sm text-gray-500 mt-1">
+                        Your latest approved facility bookings
+                    </p>
+                </div>
+
+                <a href="{% url 'my_reservations' %}"
+                   class="hidden sm:inline-flex items-center gap-1 text-sm text-gray-600 hover:text-black transition font-medium">
+
                     View all
                     <span class="material-icons text-base">arrow_forward</span>
                 </a>
+
             </div>
 
-            <div class="space-y-4">
-                {% for res in upcoming_list %}
-                <div class="flex items-center justify-between p-4 rounded-xl border border-gray-100 hover:bg-gray-50 transition">
+            <!-- LIST -->
+            <div class="divide-y divide-gray-100">
 
-                    <div>
-                        <p class="font-medium text-gray-800">
-                            {{ res.facility.name }}
-                        </p>
-                        <p class="text-xs text-gray-500">
-                            {{ res.date }} • {{ res.time_slot }}
-                        </p>
+                {% for res in upcoming_list %}
+                <div class="p-5 hover:bg-gray-50 transition">
+
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+
+                        <!-- LEFT -->
+                        <div class="flex items-start gap-4">
+
+                            <div class="w-14 h-14 rounded-2xl bg-gray-100 flex items-center justify-center shrink-0">
+                                <span class="material-icons text-gray-700">
+                                    meeting_room
+                                </span>
+                            </div>
+
+                            <div>
+                                <h3 class="font-semibold text-gray-900">
+                                    {{ res.facility.name }}
+                                </h3>
+
+                                <div class="flex flex-wrap items-center gap-2 mt-2 text-xs text-gray-500">
+
+                                    <span class="inline-flex items-center gap-1">
+                                        <span class="material-icons text-[14px]">calendar_today</span>
+                                        {{ res.date }}
+                                    </span>
+
+                                    <span class="w-1 h-1 rounded-full bg-gray-300"></span>
+
+                                    <span class="inline-flex items-center gap-1">
+                                        <span class="material-icons text-[14px]">schedule</span>
+                                        {{ res.time_slot }}
+                                    </span>
+
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <!-- STATUS -->
+                        <div class="flex items-center justify-between sm:justify-end gap-3">
+
+                            <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-green-50 text-green-700 text-xs font-medium border border-green-100">
+
+                                <span class="w-2 h-2 rounded-full bg-green-500"></span>
+                                Approved
+                            </span>
+
+                        </div>
+
+                    </div>
+                </div>
+
+                {% empty %}
+
+                <!-- EMPTY STATE -->
+                <div class="flex flex-col items-center justify-center py-16 px-6 text-center">
+
+                    <div class="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+                        <span class="material-icons text-4xl text-gray-400">
+                            event_busy
+                        </span>
                     </div>
 
-                    <span class="text-xs px-3 py-1 rounded-full bg-green-50 text-green-600">
-                        Approved
+                    <h3 class="text-lg font-semibold text-gray-800">
+                        No upcoming reservations
+                    </h3>
+
+                    <p class="text-sm text-gray-500 mt-2 max-w-sm">
+                        You currently have no upcoming bookings.
+                        Start by reserving a facility.
+                    </p>
+
+                    <a href="{% url 'facilities' %}"
+                       class="mt-5 inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-gray-900 text-white text-sm font-medium hover:bg-black transition">
+
+                        <span class="material-icons text-[18px]">add</span>
+                        Book Reservation
+                    </a>
+
+                </div>
+
+                {% endfor %}
+
+            </div>
+        </div>
+
+        <!-- RIGHT PANEL -->
+        <div class="space-y-6">
+
+            <!-- QUICK INFO -->
+            <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm">
+
+                <div class="flex items-center justify-between mb-4">
+
+                    <h3 class="font-semibold text-gray-900">
+                        Reservation Tips
+                    </h3>
+
+                    <span class="material-icons text-gray-400">
+                        tips_and_updates
                     </span>
 
                 </div>
-                {% empty %}
-                <p class="text-sm text-gray-400">No upcoming reservations</p>
-                {% endfor %}
+
+                <div class="space-y-4 text-sm text-gray-600">
+
+                    <div class="flex gap-3">
+                        <span class="material-icons text-blue-500 text-base mt-0.5">
+                            check_circle
+                        </span>
+                        <p>Book early to secure your preferred schedule.</p>
+                    </div>
+
+                    <div class="flex gap-3">
+                        <span class="material-icons text-green-500 text-base mt-0.5">
+                            verified
+                        </span>
+                        <p>Approved reservations are automatically confirmed.</p>
+                    </div>
+
+                    <div class="flex gap-3">
+                        <span class="material-icons text-orange-500 text-base mt-0.5">
+                            access_time
+                        </span>
+                        <p>Pending requests may take time for admin review.</p>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- ACTIVITY -->
+            <div class="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-3xl p-6 text-white shadow-xl">
+
+                <p class="text-sm text-blue-100">
+                    Reservation Activity
+                </p>
+
+                <h3 class="text-3xl font-bold mt-2">
+                    {{ total_reservations }}
+                </h3>
+
+                <p class="text-sm text-blue-100 mt-2">
+                    Total bookings made in the system
+                </p>
+
+                <div class="mt-6 h-2 bg-white/20 rounded-full overflow-hidden">
+                    <div class="h-full w-[75%] bg-white rounded-full"></div>
+                </div>
+
             </div>
 
         </div>
-
-        <!-- RIGHT: STATS -->
-        <div class="space-y-4">
-
-            <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
-                <p class="text-xs text-gray-500">Total Reservations</p>
-                <p class="text-2xl font-semibold mt-2">{{ total_reservations }}</p>
-            </div>
-
-            <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
-                <p class="text-xs text-gray-500">Pending</p>
-                <p class="text-2xl font-semibold mt-2">{{ pending_approvals }}</p>
-            </div>
-
-            <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
-                <p class="text-xs text-gray-500">Upcoming</p>
-                <p class="text-2xl font-semibold mt-2">{{ upcoming_reservations }}</p>
-            </div>
-
-        </div>
-
     </div>
 </div>
 {% endblock %}

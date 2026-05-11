@@ -1080,6 +1080,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from google import genai
+import re
 
 # initialize client ONCE (important)
 client = genai.Client(api_key=settings.GEMINI_API_KEY)
@@ -1087,6 +1088,18 @@ client = genai.Client(api_key=settings.GEMINI_API_KEY)
 
 def get_ai_reply(message: str) -> str:
     msg = message.lower()
+
+    # -----------------------------
+    # AVAILABILITY CHECK (NEW)
+    # -----------------------------
+    if "available" in msg or "availability" in msg:
+        return check_availability_from_message(message)
+    
+    # -----------------------------
+    # AVAILABILITY OF FACILITIES CHECK (NEW)
+    # -----------------------------
+    if "available facilities" in msg or "what facilities" in msg or "list facilities" in msg:
+        return get_available_facilities(message)
 
     # -----------------------------
     # BOOKING
@@ -1156,6 +1169,115 @@ def get_ai_reply(message: str) -> str:
         "Please ask a specific question."
     )
 
+from dateutil import parser
+from datetime import datetime
+from .models import Reservation, Facility
+
+def check_availability_from_message(message: str) -> str:
+    msg = message.lower()
+
+    # -----------------------------
+    # EXTRACT DATE + TIME (SMART)
+    # -----------------------------
+    try:
+        dt = parser.parse(message, fuzzy=True)
+        selected_date = dt.date()
+        selected_time = dt.time()
+    except:
+        return "Please provide a valid date and time (e.g., June 16 at 3pm)."
+
+    # -----------------------------
+    # FIND FACILITY (BETTER MATCH)
+    # -----------------------------
+    facilities = Facility.objects.all()
+    facility = None
+
+    for f in facilities:
+        if f.name.lower() in msg:
+            facility = f
+            break
+
+    if not facility:
+        return "Please specify the facility name."
+
+    # -----------------------------
+    # CHECK RESERVATIONS
+    # -----------------------------
+    reservations = Reservation.objects.filter(
+        facility=facility,
+        date=selected_date,
+        status__in=["pending", "approved"]
+    )
+
+    for r in reservations:
+        if r.start_time <= selected_time < r.end_time:
+            return (
+                f"❌ {facility.name} is NOT available on {selected_date} "
+                f"at {selected_time.strftime('%I:%M %p')}.\n"
+                "Try another time."
+            )
+
+    return (
+        f"✅ {facility.name} is available on {selected_date} "
+        f"at {selected_time.strftime('%I:%M %p')}."
+    )
+
+from dateutil import parser
+from .models import Facility, Reservation
+
+def get_available_facilities(message: str) -> str:
+    msg = message.lower()
+
+    # Try to extract date/time
+    try:
+        dt = parser.parse(message, fuzzy=True)
+        selected_date = dt.date()
+        selected_time = dt.time()
+        has_datetime = True
+    except:
+        has_datetime = False
+
+    facilities = Facility.objects.all()
+    available = []
+
+    for f in facilities:
+        if not has_datetime:
+            available.append(f.name)
+            continue
+
+        # Check reservations
+        reservations = Reservation.objects.filter(
+            facility=f,
+            date=selected_date,
+            status__in=["pending", "approved"]
+        )
+
+        conflict = False
+        for r in reservations:
+            if r.start_time <= selected_time < r.end_time:
+                conflict = True
+                break
+
+        if not conflict:
+            available.append(f.name)
+
+    # -----------------------------
+    # RESPONSE
+    # -----------------------------
+    if not available:
+        if has_datetime:
+            return "❌ No facilities are available at that date and time."
+        return "No facilities found."
+
+    if has_datetime:
+        response = f"✅ Available facilities on {selected_date} at {dt.strftime('%I:%M %p')}:\n"
+    else:
+        response = "Here are all available facilities:\n"
+
+    for name in available:
+        response += f"- {name}\n"
+
+    return response
 
 @csrf_exempt
 def ai_assistant(request):

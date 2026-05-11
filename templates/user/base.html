@@ -113,173 +113,500 @@
     </style>
 </head>
 
-<body class="font-sans text-gray-800 flex">
+<body class="font-sans bg-gray-50 text-gray-800 flex min-h-screen overflow-x-hidden">
 
-    <!-- TOAST CONTAINER -->
-    <div id="toastContainer" class="fixed top-5 right-5 space-y-2 z-[9999]"></div>
+    <!-- ================= TOAST CONTAINER ================= -->
+    <div id="toastContainer"
+        class="fixed top-4 right-4 z-[9999] space-y-3"></div>
 
-    <!-- SIDEBAR -->
-    <aside class="hidden md:flex flex-col w-64 h-screen bg-white shadow-lg sticky top-0">
-        <div class="p-6 flex flex-col h-full">
+    <!-- ================= SIDEBAR ================= -->
+    <aside class="hidden lg:flex flex-col w-72 h-screen sticky top-0
+                  bg-white/90 backdrop-blur-xl border-r border-gray-200">
 
-            <!-- BRAND -->
-            <div class="mb-6 flex items-center gap-2">
-                <span class="material-icons text-3xl text-blue-600">event</span>
-                <h1 class="text-2xl font-bold">EVSU Reserve</h1>
+        <div class="flex flex-col h-full p-6">
+
+            <!-- LOGO -->
+            <div class="flex items-center gap-3 mb-10">
+
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600
+                            flex items-center justify-center shadow-lg shadow-blue-500/20">
+
+                    <span class="material-icons text-white text-2xl">
+                        event_available
+                    </span>
+                </div>
+
+                <div>
+                    <h1 class="text-xl font-bold text-gray-900">
+                        EVSU Reserve
+                    </h1>
+
+                    <p class="text-xs text-gray-500">
+                        Reservation System
+                    </p>
+                </div>
             </div>
 
-            <!-- USER -->
-            <div class="mb-6">
-                <p class="font-semibold">Welcome, {{ request.user.username }}</p>
-                <p class="text-sm text-gray-500">{{ request.user.role }}</p>
+            <!-- USER CARD -->
+            <div class="mb-8">
+
+                <div class="p-4 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg">
+
+                    <div class="flex items-center gap-3">
+
+                        <div class="w-12 h-12 rounded-full bg-white/20 backdrop-blur
+                                    flex items-center justify-center text-lg font-semibold">
+
+                            {{ request.user.username|slice:":1"|upper }}
+                        </div>
+
+                        <div class="min-w-0">
+                            <p class="font-semibold truncate">
+                                {{ request.user.username }}
+                            </p>
+
+                            <p class="text-xs text-blue-100 truncate">
+                                {{ request.user.email }}
+                            </p>
+                        </div>
+
+                    </div>
+
+                </div>
+
             </div>
 
-            <!-- NAV -->
+            <!-- NAVIGATION -->
             <nav class="flex-1 space-y-2">
+
+                <!-- Dashboard -->
                 <a href="{% url 'user_dashboard' %}"
-                    class="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-gray-100 {% if request.resolver_match.url_name == 'user_dashboard' %}active{% endif %}">
-                    <span class="material-icons">dashboard</span> Dashboard
+                   class="group flex items-center gap-3 px-4 py-3 rounded-2xl
+                          transition-all duration-300
+
+                          {% if request.resolver_match.url_name == 'user_dashboard' %}
+                          bg-blue-600 text-white shadow-lg shadow-blue-500/20
+                          {% else %}
+                          text-gray-600 hover:bg-gray-100 hover:text-gray-900
+                          {% endif %}">
+
+                    <span class="material-icons text-[20px]">dashboard</span>
+
+                    <span class="font-medium">
+                        Dashboard
+                    </span>
+
                 </a>
 
+                <!-- Reservations -->
                 <a href="{% url 'my_reservations' %}"
-                    class="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-gray-100 {% if request.resolver_match.url_name == 'my_reservations' %}active{% endif %}">
-                    <span class="material-icons">event_available</span> My Reservations
+                   class="group flex items-center gap-3 px-4 py-3 rounded-2xl
+                          transition-all duration-300
+
+                          {% if request.resolver_match.url_name == 'my_reservations' %}
+                          bg-blue-600 text-white shadow-lg shadow-blue-500/20
+                          {% else %}
+                          text-gray-600 hover:bg-gray-100 hover:text-gray-900
+                          {% endif %}">
+
+                    <span class="material-icons text-[20px]">
+                        calendar_month
+                    </span>
+
+                    <span class="font-medium">
+                        My Reservations
+                    </span>
+
                 </a>
 
-                <a href="{% url 'facilities' %}" class="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-gray-100">
-                    <span class="material-icons">meeting_room</span> Facilities
+                <!-- Facilities -->
+                <a href="{% url 'facilities' %}"
+                   class="group flex items-center gap-3 px-4 py-3 rounded-2xl
+                          transition-all duration-300
+
+                          {% if request.resolver_match.url_name == 'facilities' %}
+                          bg-blue-600 text-white shadow-lg shadow-blue-500/20
+                          {% else %}
+                          text-gray-600 hover:bg-gray-100 hover:text-gray-900
+                          {% endif %}">
+
+                    <span class="material-icons text-[20px]">
+                        meeting_room
+                    </span>
+
+                    <span class="font-medium">
+                        Facilities
+                    </span>
+
                 </a>
 
-                <a href="#" class="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-gray-100">
-                    <span class="material-icons">settings</span> Settings
+                <!-- Settings -->
+                <a href="#"
+                   class="group flex items-center gap-3 px-4 py-3 rounded-2xl
+                          text-gray-600 hover:bg-gray-100 hover:text-gray-900
+                          transition-all duration-300">
+
+                    <span class="material-icons text-[20px]">
+                        settings
+                    </span>
+
+                    <span class="font-medium">
+                        Settings
+                    </span>
+
                 </a>
+
             </nav>
 
             <!-- LOGOUT -->
             <button onclick="openLogoutModal()"
-                class="mt-auto flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-red-50 text-red-600">
-                <span class="material-icons">logout</span> Logout
+                    class="mt-6 flex items-center gap-3 px-4 py-3 rounded-2xl
+                           text-red-600 hover:bg-red-50 transition-all duration-300">
+
+                <span class="material-icons">logout</span>
+
+                <span class="font-medium">
+                    Logout
+                </span>
+
             </button>
+
         </div>
+
     </aside>
 
-    <!-- MAIN WRAPPER -->
+    <!-- ================= MAIN ================= -->
     <div class="flex-1 flex flex-col min-h-screen">
 
-        <!-- HEADER -->
-        <header class="sticky top-0 z-40 bg-white/70 border-b px-4 md:px-10 py-3 flex justify-between items-center">
+        <!-- ================= HEADER ================= -->
+        <header class="sticky top-0 z-40
+                       bg-white/80 backdrop-blur-xl
+                       border-b border-gray-200">
 
-            <h2 class="text-lg font-semibold text-gray-800">Dashboard</h2>
+            <div class="px-4 md:px-8 py-4 flex items-center justify-between">
 
-            <!-- RIGHT -->
-            <div class="flex items-center gap-3 relative">
+                <!-- LEFT -->
+                <div>
 
-                <!-- NOTIFICATIONS -->
-                <button id="notifBtn"
-                    class="relative w-9 h-9 rounded-full bg-white border flex items-center justify-center">
-                    <span class="material-icons text-[20px]">notifications</span>
+                    <h2 class="text-lg md:text-xl font-semibold text-gray-900">
+                        {% block page_title %}Dashboard{% endblock %}
+                    </h2>
 
-                    {% if unread_notifications_count > 0 %}
-                    <span class="absolute -top-1 -right-1 text-[10px] bg-red-500 text-white rounded-full px-1">
-                        {{ unread_notifications_count }}
-                    </span>
-                    {% endif %}
-                </button>
+                    <p class="text-xs md:text-sm text-gray-500 mt-0.5">
+                        Manage your reservations easily
+                    </p>
 
-                <!-- DROPDOWN -->
-                <div id="notifDropdown"
-                    class="hidden absolute right-0 top-12 w-80 bg-white rounded-xl shadow-lg border">
-                    <div class="p-3 border-b font-semibold">Notifications</div>
-                    <div id="notifList" class="p-3 text-sm text-gray-500">
-                        Loading...
-                    </div>
                 </div>
 
-                <!-- PROFILE -->
-                <div class="relative">
-                    <button id="profileBtn">
-                        <div class="w-9 h-9 bg-blue-600 text-white rounded-full flex items-center justify-center">
-                            {{ request.user.username|slice:":1"|upper }}
-                        </div>
-                    </button>
+                <!-- RIGHT -->
+                <div class="flex items-center gap-3">
 
-                    <div id="profileDropdown"
-                        class="hidden absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-lg p-3">
-                        <p class="text-sm font-medium">{{ request.user.username }}</p>
-                        <p class="text-xs text-gray-500 mb-2">{{ request.user.email }}</p>
+                    <!-- NOTIFICATIONS -->
+                    <div class="relative">
 
-                        <button onclick="openLogoutModal()"
-                            class="w-full text-left text-red-600 hover:bg-red-50 px-3 py-2 rounded-lg">
-                            Logout
+                        <button id="notifBtn"
+                            class="relative w-11 h-11 rounded-2xl
+                                   bg-white border border-gray-200
+                                   hover:bg-gray-100 transition
+                                   flex items-center justify-center shadow-sm">
+
+                            <span class="material-icons text-[20px] text-gray-700">
+                                notifications
+                            </span>
+
+                            {% if unread_notifications_count > 0 %}
+                            <span class="absolute -top-1 -right-1 min-w-[20px] h-5
+                                         px-1 rounded-full bg-red-500 text-white
+                                         text-[10px] flex items-center justify-center font-semibold">
+
+                                {{ unread_notifications_count }}
+
+                            </span>
+                            {% endif %}
                         </button>
+
+                        <!-- DROPDOWN -->
+                        <div id="notifDropdown"
+                            class="hidden absolute right-0 mt-3 w-80
+                                   bg-white rounded-2xl border border-gray-200
+                                   shadow-2xl overflow-hidden">
+
+                            <div class="px-4 py-3 border-b border-gray-100
+                                        flex items-center justify-between">
+
+                                <h3 class="font-semibold text-gray-800">
+                                    Notifications
+                                </h3>
+
+                                <span class="text-xs text-gray-400">
+                                    Recent
+                                </span>
+
+                            </div>
+
+                            <div id="notifList"
+                                class="max-h-96 overflow-y-auto">
+
+                                <div class="p-4 text-sm text-gray-500">
+                                    Loading...
+                                </div>
+
+                            </div>
+
+                        </div>
+
                     </div>
+
+                    <!-- PROFILE -->
+                    <div class="relative">
+
+                        <button id="profileBtn"
+                            class="flex items-center gap-3 p-1.5 rounded-2xl
+                                   hover:bg-gray-100 transition">
+
+                            <div class="w-10 h-10 rounded-full
+                                        bg-gradient-to-br from-blue-600 to-indigo-600
+                                        text-white font-semibold
+                                        flex items-center justify-center shadow-md">
+
+                                {{ request.user.username|slice:":1"|upper }}
+                            </div>
+
+                            <div class="hidden md:block text-left">
+
+                                <p class="text-sm font-medium text-gray-800 leading-none">
+                                    {{ request.user.username }}
+                                </p>
+
+                                <p class="text-xs text-gray-500 mt-1">
+                                    {{ request.user.role }}
+                                </p>
+
+                            </div>
+
+                            <span class="material-icons text-gray-500 hidden md:block">
+                                expand_more
+                            </span>
+
+                        </button>
+
+                        <!-- PROFILE DROPDOWN -->
+                        <div id="profileDropdown"
+                            class="hidden absolute right-0 mt-3 w-64
+                                   bg-white rounded-2xl border border-gray-200
+                                   shadow-2xl overflow-hidden">
+
+                            <div class="p-4 border-b border-gray-100">
+
+                                <p class="font-semibold text-gray-900">
+                                    {{ request.user.username }}
+                                </p>
+
+                                <p class="text-sm text-gray-500 truncate">
+                                    {{ request.user.email }}
+                                </p>
+
+                            </div>
+
+                            <div class="p-2">
+
+                                <a href="#"
+                                   class="flex items-center gap-3 px-3 py-2 rounded-xl
+                                          hover:bg-gray-100 text-sm text-gray-700 transition">
+
+                                    <span class="material-icons text-[18px]">
+                                        settings
+                                    </span>
+
+                                    Settings
+                                </a>
+
+                                <button onclick="openLogoutModal()"
+                                    class="w-full flex items-center gap-3 px-3 py-2 rounded-xl
+                                           hover:bg-red-50 text-sm text-red-600 transition">
+
+                                    <span class="material-icons text-[18px]">
+                                        logout
+                                    </span>
+
+                                    Logout
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
                 </div>
 
             </div>
+
         </header>
 
-        <!-- CONTENT -->
-        <main class="flex-1 p-6 md:p-10 pb-[5rem]">
+        <!-- ================= CONTENT ================= -->
+        <main class="flex-1 p-4 md:p-8 pb-28 lg:pb-8">
+
             {% block content %}{% endblock %}
+
         </main>
 
     </div>
 
-    <!-- MOBILE NAV -->
-    <div id="mobileNav" class="md:hidden fixed bottom-4 left-1/2 -translate-x-1/2 w-[92%]
-            bg-white/80 backdrop-blur-xl border border-gray-200
-            shadow-lg rounded-2xl px-2 py-2 flex items-center justify-between
-            opacity-0 translate-y-6 animate-navIn">
+    <!-- ================= MOBILE NAV ================= -->
+    <div class="lg:hidden fixed bottom-4 left-1/2 -translate-x-1/2
+                w-[94%] max-w-md z-50">
 
-        <!-- Dashboard -->
-        <a href="{% url 'user_dashboard' %}" class="nav-item flex flex-col items-center justify-center w-full py-2 rounded-xl
-       transition-all duration-300
-       {% if request.resolver_match.url_name == 'user_dashboard' %}active-tab{% endif %}">
-            <span class="material-icons text-xl">dashboard</span>
-            <span class="text-[11px] mt-1">Home</span>
-        </a>
+        <div class="bg-white/90 backdrop-blur-2xl
+                    border border-gray-200 shadow-2xl
+                    rounded-3xl px-2 py-2">
 
-        <!-- Reservations -->
-        <a href="{% url 'my_reservations' %}" class="nav-item flex flex-col items-center justify-center w-full py-2 rounded-xl transition-all duration-300
-       {% if request.resolver_match.url_name == 'my_reservations' %}active-tab{% endif %}">
-            <span class="material-icons text-xl">event_available</span>
-            <span class="text-[11px] mt-1">Bookings</span>
-        </a>
+            <div class="grid grid-cols-5 gap-1">
 
-        <!-- Facilities -->
-        <a href="{% url 'facilities' %}" class="nav-item flex flex-col items-center justify-center w-full py-2 rounded-xl transition-all duration-300
-       {% if request.resolver_match.url_name == 'facilities' %}active-tab{% endif %}">
-            <span class="material-icons text-xl">meeting_room</span>
-            <span class="text-[11px] mt-1">Facilities</span>
-        </a>
+                <!-- Home -->
+                <a href="{% url 'user_dashboard' %}"
+                   class="flex flex-col items-center justify-center py-2 rounded-2xl
+                          transition-all duration-300
 
-        <!-- Settings -->
-        <a href="#"
-            class="nav-item flex flex-col items-center justify-center w-full py-2 rounded-xl text-gray-500 hover:text-blue-600">
-            <span class="material-icons text-xl">settings</span>
-            <span class="text-[11px] mt-1">Settings</span>
-        </a>
+                          {% if request.resolver_match.url_name == 'user_dashboard' %}
+                          bg-blue-600 text-white shadow-lg
+                          {% else %}
+                          text-gray-500
+                          {% endif %}">
 
-        <!-- Logout -->
-        <button onclick="openLogoutModal()"
-            class="nav-item flex flex-col items-center justify-center w-full py-2 rounded-xl text-red-500">
-            <span class="material-icons text-xl">logout</span>
-            <span class="text-[11px] mt-1">Logout</span>
-        </button>
+                    <span class="material-icons text-[20px]">home</span>
+
+                    <span class="text-[10px] mt-1 font-medium">
+                        Home
+                    </span>
+
+                </a>
+
+                <!-- Reservations -->
+                <a href="{% url 'my_reservations' %}"
+                   class="flex flex-col items-center justify-center py-2 rounded-2xl
+                          transition-all duration-300
+
+                          {% if request.resolver_match.url_name == 'my_reservations' %}
+                          bg-blue-600 text-white shadow-lg
+                          {% else %}
+                          text-gray-500
+                          {% endif %}">
+
+                    <span class="material-icons text-[20px]">
+                        calendar_month
+                    </span>
+
+                    <span class="text-[10px] mt-1 font-medium">
+                        Bookings
+                    </span>
+
+                </a>
+
+                <!-- CENTER BUTTON -->
+                <a href="{% url 'facilities' %}"
+                   class="-mt-8 flex items-center justify-center">
+
+                    <div class="w-16 h-16 rounded-full
+                                bg-gradient-to-br from-blue-600 to-indigo-600
+                                shadow-2xl shadow-blue-500/30
+                                flex items-center justify-center text-white">
+
+                        <span class="material-icons text-3xl">
+                            add
+                        </span>
+
+                    </div>
+
+                </a>
+
+                <!-- Notifications -->
+                <button id="mobileNotifBtn"
+                    class="flex flex-col items-center justify-center py-2 rounded-2xl
+                           text-gray-500 transition-all duration-300">
+
+                    <span class="material-icons text-[20px]">
+                        notifications
+                    </span>
+
+                    <span class="text-[10px] mt-1 font-medium">
+                        Alerts
+                    </span>
+
+                </button>
+
+                <!-- Profile -->
+                <button onclick="openLogoutModal()"
+                    class="flex flex-col items-center justify-center py-2 rounded-2xl
+                           text-red-500 transition-all duration-300">
+
+                    <span class="material-icons text-[20px]">
+                        logout
+                    </span>
+
+                    <span class="text-[10px] mt-1 font-medium">
+                        Logout
+                    </span>
+
+                </button>
+
+            </div>
+
+        </div>
 
     </div>
 
-    <!-- LOGOUT MODAL -->
-    <div id="logoutModal" class="fixed inset-0 hidden items-center justify-center bg-black/40">
-        <div class="bg-white p-6 rounded-xl text-center w-80">
-            <h2 class="font-semibold mb-2">Confirm Logout</h2>
-            <p class="text-sm text-gray-500 mb-4">Are you sure?</p>
+    <!-- ================= LOGOUT MODAL ================= -->
+    <div id="logoutModal"
+         class="fixed inset-0 z-[99999] hidden items-center justify-center
+                bg-black/40 backdrop-blur-sm p-4">
 
-            <div class="flex gap-2">
-                <button onclick="closeLogoutModal()" class="flex-1 bg-gray-100 py-2 rounded-lg">Cancel</button>
-                <a href="{% url 'logout' %}" class="flex-1 bg-red-600 text-white py-2 rounded-lg text-center">Logout</a>
+        <div class="w-full max-w-sm bg-white rounded-3xl shadow-2xl overflow-hidden">
+
+            <!-- HEADER -->
+            <div class="p-6 text-center">
+
+                <div class="w-16 h-16 mx-auto rounded-full
+                            bg-red-100 text-red-600
+                            flex items-center justify-center mb-4">
+
+                    <span class="material-icons text-3xl">
+                        logout
+                    </span>
+
+                </div>
+
+                <h2 class="text-xl font-semibold text-gray-900">
+                    Confirm Logout
+                </h2>
+
+                <p class="text-sm text-gray-500 mt-2">
+                    Are you sure you want to logout from your account?
+                </p>
+
             </div>
+
+            <!-- ACTIONS -->
+            <div class="grid grid-cols-2 gap-3 p-4 bg-gray-50">
+
+                <button onclick="closeLogoutModal()"
+                    class="py-3 rounded-2xl bg-white border border-gray-200
+                           hover:bg-gray-100 text-gray-700 font-medium transition">
+
+                    Cancel
+                </button>
+
+                <a href="{% url 'logout' %}"
+                   class="py-3 rounded-2xl bg-red-600 hover:bg-red-700
+                          text-white text-center font-medium transition">
+
+                    Logout
+                </a>
+
+            </div>
+
         </div>
+
     </div>
 
     <!-- SCRIPTS -->
